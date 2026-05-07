@@ -1,0 +1,2477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finanças I — P3 · Alocação de Capital, Otimização e Diversificação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================
+     DESIGN SYSTEM — Editorial / Academic
+     Inspired by financial textbooks meets Economist
+     ============================================ */
+  :root{
+    --ink:        #1a1614;
+    --ink-soft:   #3d3631;
+    --ink-mute:   #6b6259;
+    --paper:      #f7f3ec;
+    --paper-warm: #efe9df;
+    --paper-deep: #e6dfd1;
+    --rule:       #d4ccba;
+    --accent:     #b8290f;     /* burgundy/red */
+    --accent-d:   #8a1e0b;
+    --gold:       #b08a3e;
+    --ok:         #2d6a4f;
+    --ok-soft:    #d4e5d9;
+    --bad:        #b8290f;
+    --bad-soft:   #f0d4cf;
+    --warn:       #946800;
+    --warn-soft:  #f5e8c4;
+    --shadow:     0 1px 0 rgba(26,22,20,.04), 0 8px 24px -12px rgba(26,22,20,.18);
+
+    --serif: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+    --sans:  'Inter', -apple-system, system-ui, sans-serif;
+    --mono:  'JetBrains Mono', 'Menlo', monospace;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(26,22,20,.05) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+
+  /* ============= HEADER ============= */
+  .masthead{
+    border-bottom: 3px double var(--ink);
+    padding: 32px 0 24px;
+    background: var(--paper);
+    position: relative;
+  }
+  .masthead-inner{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: 32px;
+  }
+  .masthead-mark{
+    font-family: var(--serif);
+    font-weight: 900;
+    font-style: italic;
+    font-size: 56px;
+    line-height: .9;
+    letter-spacing: -0.04em;
+    color: var(--accent);
+  }
+  .masthead-title{
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4.5vw, 48px);
+    letter-spacing: -0.025em;
+    line-height: 1;
+    text-align: center;
+  }
+  .masthead-title em{
+    font-style: italic;
+    font-variation-settings: "opsz" 144;
+  }
+  .masthead-meta{
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+    line-height: 1.5;
+  }
+  .masthead-meta strong{color: var(--ink)}
+  .masthead-strap{
+    max-width: 1200px;
+    margin: 16px auto 0;
+    padding: 0 32px;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    border-top: 1px solid var(--rule);
+    padding-top: 12px;
+  }
+
+  /* ============= NAV TABS ============= */
+  .tabs{
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+    box-shadow: 0 4px 12px -8px rgba(0,0,0,.08);
+  }
+  .tabs-inner{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .tab{
+    background: none;
+    border: none;
+    padding: 18px 22px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink-mute);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all .2s;
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+  .tab:hover{color: var(--ink)}
+  .tab.active{
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab .num{
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--gold);
+    margin-right: 6px;
+  }
+
+  /* ============= LAYOUT ============= */
+  main{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 32px 96px;
+  }
+  .panel{display:none}
+  .panel.active{display:block; animation: fadeIn .3s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ============= TYPOGRAPHY ============= */
+  h1, h2, h3, h4{font-family: var(--serif); font-weight: 500; letter-spacing: -0.015em}
+  h1{font-size: 42px; line-height: 1.1; margin-bottom: 8px}
+  h2.section-title{
+    font-size: 32px;
+    font-weight: 600;
+    margin: 56px 0 4px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  h2.section-title:first-child{margin-top: 0}
+  h2.section-title .sec-num{
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    border: 1px solid var(--accent);
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+  h3.sub-title{
+    font-size: 22px;
+    font-weight: 600;
+    margin: 32px 0 12px;
+    color: var(--ink);
+  }
+  h4.sub-sub{
+    font-family: var(--sans);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 12px;
+    color: var(--accent);
+    margin: 20px 0 8px;
+  }
+  p{margin-bottom: 14px; max-width: 72ch}
+  p.lead{
+    font-family: var(--serif);
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin-bottom: 24px;
+    max-width: 72ch;
+  }
+  p.lead::first-letter{
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  ul, ol{margin: 12px 0 16px 24px}
+  li{margin-bottom: 6px; max-width: 70ch}
+  li strong{color: var(--ink)}
+
+  /* drop cap */
+  .drop-cap::first-letter{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 64px;
+    float: left;
+    line-height: .85;
+    margin: 4px 8px -4px 0;
+    color: var(--accent);
+  }
+
+  /* ============= COMPONENTS ============= */
+  .formula{
+    font-family: var(--mono);
+    font-size: 15px;
+    background: var(--paper-warm);
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    margin: 16px 0;
+    border-radius: 0 4px 4px 0;
+    overflow-x: auto;
+  }
+  .formula-display{
+    text-align: center;
+    font-size: 17px;
+    padding: 20px;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    margin: 20px 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-variation-settings: "opsz" 72;
+  }
+  .formula-display .label{
+    display: block;
+    font-family: var(--mono);
+    font-style: normal;
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .callout{
+    border-left: 3px solid var(--gold);
+    background: var(--paper-warm);
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 15px;
+  }
+  .callout-title{
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .callout.danger{border-left-color: var(--accent); background: var(--bad-soft)}
+  .callout.danger .callout-title{color: var(--accent)}
+  .callout.success{border-left-color: var(--ok); background: var(--ok-soft)}
+  .callout.success .callout-title{color: var(--ok)}
+
+  /* table */
+  table.data{
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 14px;
+    font-family: var(--sans);
+  }
+  table.data caption{
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    text-align: left;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 0;
+  }
+  table.data thead th{
+    text-align: left;
+    border-bottom: 1px solid var(--ink);
+    padding: 10px 12px;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--paper-warm);
+  }
+  table.data tbody td{
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+  table.data tbody tr:hover{background: var(--paper-warm)}
+  table.data .num{font-family: var(--mono); text-align: right}
+  table.data .num.pos{color: var(--ok)}
+  table.data .num.neg{color: var(--accent)}
+
+  /* two-column */
+  .grid-2{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin: 20px 0;
+  }
+  .grid-3{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin: 20px 0;
+  }
+  @media (max-width: 768px){
+    .grid-2, .grid-3{grid-template-columns: 1fr}
+  }
+
+  /* ============= QUIZ ============= */
+  .quiz-hero{
+    background: var(--ink);
+    color: var(--paper);
+    padding: 48px;
+    margin: 0 -32px 48px;
+    border-radius: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .quiz-hero::before{
+    content: "";
+    position: absolute;
+    top: 0; right: 0;
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 60%);
+    opacity: 0.4;
+    transform: translate(80px, -80px);
+  }
+  .quiz-hero h2{
+    font-family: var(--serif);
+    font-size: 48px;
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 12px;
+    border: none;
+    padding: 0;
+  }
+  .quiz-hero h2 em{font-style: italic; color: var(--accent)}
+  .quiz-hero p{color: rgba(247,243,236,.8); max-width: 60ch; font-size: 15px}
+
+  .quiz-controls{
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 24px 0;
+    align-items: center;
+  }
+  .filter-label{
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    margin-right: 8px;
+  }
+  .chip{
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 8px 14px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 100px;
+    transition: all .15s;
+    color: var(--ink-mute);
+  }
+  .chip:hover{border-color: var(--ink); color: var(--ink)}
+  .chip.active{
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  /* progress */
+  .progress-card{
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    padding: 20px 24px;
+    margin: 24px 0;
+    border-radius: 4px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  .stat-block .stat-label{
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-mute);
+    margin-bottom: 4px;
+  }
+  .stat-block .stat-value{
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .stat-block .stat-value.accent{color: var(--accent)}
+  .stat-block .stat-value.ok{color: var(--ok)}
+  .progress-bar{
+    height: 4px;
+    background: var(--rule);
+    margin-top: 12px;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+  .progress-bar-fill{
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+    width: 0%;
+    transition: width .4s ease;
+  }
+
+  /* question card */
+  .question{
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 28px;
+    margin: 16px 0;
+    position: relative;
+    box-shadow: var(--shadow);
+  }
+  .question.answered{border-left: 3px solid var(--ink)}
+  .question.correct{border-left: 3px solid var(--ok)}
+  .question.wrong{border-left: 3px solid var(--accent)}
+
+  .q-meta{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-mute);
+  }
+  .q-meta .q-num{font-weight: 700; color: var(--accent)}
+  .q-meta .q-tag{
+    background: var(--paper-warm);
+    padding: 3px 8px;
+    border-radius: 2px;
+    border: 1px solid var(--rule);
+  }
+  .q-type-badge{
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 3px 8px;
+    border-radius: 2px;
+    margin-right: 6px;
+    font-weight: 700;
+  }
+  .q-type-badge.mc{background: var(--ink); color: var(--paper)}
+  .q-type-badge.vf{background: var(--gold); color: var(--paper)}
+  .q-type-badge.num{background: var(--accent); color: var(--paper)}
+
+  .q-stem{
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 18px;
+  }
+  .q-stem code{
+    font-family: var(--mono);
+    background: var(--paper-warm);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 0.9em;
+  }
+
+  .options{display: flex; flex-direction: column; gap: 8px}
+  .option{
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border-radius: 3px;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .option:hover:not(.locked){
+    border-color: var(--ink);
+    background: var(--paper-warm);
+  }
+  .option.selected{
+    border-color: var(--ink);
+    background: var(--paper-warm);
+  }
+  .option.locked{cursor: default}
+  .option.correct-answer{
+    border-color: var(--ok);
+    background: var(--ok-soft);
+  }
+  .option.wrong-answer{
+    border-color: var(--accent);
+    background: var(--bad-soft);
+  }
+  .option-letter{
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--ink-mute);
+    min-width: 20px;
+    padding-top: 1px;
+  }
+  .option.correct-answer .option-letter{color: var(--ok)}
+  .option.wrong-answer .option-letter{color: var(--accent)}
+  .option-text{flex: 1}
+
+  /* numeric input */
+  .num-input-row{display: flex; gap: 12px; align-items: center; margin: 12px 0}
+  .num-input-row input{
+    flex: 1;
+    max-width: 240px;
+    padding: 10px 14px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 16px;
+    background: var(--paper);
+  }
+  .num-input-row input:focus{outline: none; border-color: var(--ink)}
+  .num-input-hint{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mute);
+  }
+
+  /* btn */
+  .btn{
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 10px 18px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all .15s;
+    letter-spacing: 0.02em;
+  }
+  .btn:hover{background: var(--accent)}
+  .btn:disabled{opacity: 0.4; cursor: not-allowed}
+  .btn.ghost{background: transparent; color: var(--ink); border: 1px solid var(--ink)}
+  .btn.ghost:hover{background: var(--ink); color: var(--paper)}
+  .btn.danger{background: var(--accent)}
+  .btn.danger:hover{background: var(--accent-d)}
+
+  .q-actions{
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* feedback */
+  .feedback{
+    margin-top: 18px;
+    padding: 18px 20px;
+    border-radius: 4px;
+    border-left: 3px solid;
+    animation: slideDown .3s ease;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .feedback.correct{
+    background: var(--ok-soft);
+    border-left-color: var(--ok);
+  }
+  .feedback.wrong{
+    background: var(--bad-soft);
+    border-left-color: var(--accent);
+  }
+  .feedback-title{
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .feedback.correct .feedback-title{color: var(--ok)}
+  .feedback.wrong .feedback-title{color: var(--accent)}
+  .feedback-body{color: var(--ink); }
+  .feedback-body strong{color: var(--ink)}
+  .feedback-body code{
+    font-family: var(--mono);
+    background: rgba(255,255,255,.6);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 0.92em;
+  }
+  .feedback-body p + p{margin-top: 8px}
+
+  /* SIMULADO */
+  .sim-hero{
+    background: linear-gradient(135deg, var(--ink) 0%, #2a2521 100%);
+    color: var(--paper);
+    padding: 48px;
+    margin: 0 -32px 32px;
+    text-align: center;
+    border-bottom: 4px double var(--accent);
+  }
+  .sim-hero h2{
+    font-family: var(--serif);
+    font-size: 56px;
+    font-weight: 400;
+    margin-bottom: 8px;
+    border: none;
+    padding: 0;
+    letter-spacing: -0.03em;
+  }
+  .sim-hero h2 em{color: var(--accent); font-style: italic}
+  .sim-hero p{color: rgba(247,243,236,.7); max-width: 60ch; margin: 12px auto 0}
+  .sim-meta-grid{
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(247,243,236,.15);
+  }
+  .sim-meta-grid > div{text-align: center}
+  .sim-meta-grid .label{
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(247,243,236,.5);
+  }
+  .sim-meta-grid .value{
+    font-family: var(--serif);
+    font-size: 32px;
+    color: var(--paper);
+    margin-top: 4px;
+  }
+
+  .sim-timer{
+    position: sticky;
+    top: 56px;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 12px 20px;
+    margin: 0 -32px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 40;
+    box-shadow: 0 4px 12px -8px rgba(0,0,0,.3);
+  }
+  .sim-timer .timer-display{
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .sim-timer .timer-display.warn{color: var(--gold)}
+  .sim-timer .timer-display.danger{color: var(--accent); animation: pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .sim-progress-mini{
+    font-family: var(--mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(247,243,236,.7);
+  }
+
+  /* result screen */
+  .result-screen{
+    text-align: center;
+    padding: 48px 32px;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    margin-top: 32px;
+  }
+  .result-grade{
+    font-family: var(--serif);
+    font-size: 120px;
+    font-weight: 600;
+    line-height: 1;
+    margin: 16px 0;
+    letter-spacing: -0.04em;
+  }
+  .result-grade.excellent{color: var(--ok)}
+  .result-grade.good{color: var(--gold)}
+  .result-grade.fair{color: var(--warn)}
+  .result-grade.poor{color: var(--accent)}
+  .result-msg{
+    font-family: var(--serif);
+    font-size: 22px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+  }
+
+  /* misc */
+  .toc{
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    padding: 24px 28px;
+    border-radius: 4px;
+    margin: 24px 0 40px;
+    columns: 2;
+    column-gap: 32px;
+  }
+  @media (max-width: 768px){.toc{columns: 1}}
+  .toc-title{
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    margin-bottom: 12px;
+    column-span: all;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 8px;
+  }
+  .toc a{
+    display: block;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 4px 0;
+    font-size: 14px;
+    border-bottom: 1px dotted transparent;
+    break-inside: avoid;
+  }
+  .toc a:hover{color: var(--accent); border-bottom-color: var(--accent)}
+  .toc a .toc-num{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    margin-right: 8px;
+  }
+
+  /* ascii diagram for portfolios */
+  .diagram{
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    padding: 24px;
+    margin: 16px 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    overflow-x: auto;
+    border-radius: 3px;
+  }
+
+  /* footer */
+  footer{
+    border-top: 3px double var(--ink);
+    padding: 32px 0;
+    margin-top: 64px;
+    text-align: center;
+  }
+  footer-inner{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+  footer p{
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-mute);
+    max-width: none;
+    text-align: center;
+  }
+
+  /* hidden */
+  .hidden{display: none !important}
+
+  /* highlight markup for inline math */
+  .math-inline{
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.05em;
+  }
+  .math-inline sub, .math-inline sup{font-style: normal; font-size: 0.7em}
+
+  /* scroll back to top */
+  .to-top{
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: none;
+    z-index: 30;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  }
+  .to-top.show{display: block}
+  .to-top:hover{background: var(--accent)}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-mark">F<sub style="font-size:.5em;font-style:normal">I</sub></div>
+    <div class="masthead-title">
+      The <em>Efficient</em> Portfolio
+      <div style="font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.2em;color:var(--ink-mute);margin-top:8px">
+        Alocação · Otimização · Diversificação
+      </div>
+    </div>
+    <div class="masthead-meta">
+      Finanças I — REC3600<br>
+      <strong>FEA-RP / USP</strong><br>
+      Prova P3 · 2026.1
+    </div>
+  </div>
+  <div class="masthead-strap">
+    <span>Prof. Renato Schwambach Vieira</span>
+    <span>Bodie · Kane · Marcus — Cap. 5–7</span>
+    <span>Aulas 8 → 13</span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <button class="tab active" data-tab="theory"><span class="num">I.</span>Teoria Completa</button>
+    <button class="tab" data-tab="quiz"><span class="num">II.</span>Quiz por Tópico</button>
+    <button class="tab" data-tab="exam"><span class="num">III.</span>Simulado P3</button>
+    <button class="tab" data-tab="formulary"><span class="num">IV.</span>Formulário</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ======================================================
+     PANEL 1 — THEORY
+     ====================================================== -->
+<section class="panel active" id="panel-theory">
+
+  <p class="lead">
+    Esta é a síntese teórica unificada da P3 de Finanças I, costurando os Capítulos 5 a 7 do Bodie-Kane-Marcus
+    com o material das Aulas 8 a 13. Todo conteúdo é navegável, com fórmulas, exemplos numéricos resolvidos
+    e o desenvolvimento completo do problema de Markowitz — do caso de dois ativos até a otimização com N ativos via Solver.
+  </p>
+
+  <nav class="toc" aria-label="Sumário">
+    <div class="toc-title">Sumário</div>
+    <a href="#sec-1"><span class="toc-num">§1</span>Dados Históricos & Normalidade</a>
+    <a href="#sec-2"><span class="toc-num">§2</span>Decisão de Alocação do Capital</a>
+    <a href="#sec-3"><span class="toc-num">§3</span>Risco, Aposta & Especulação</a>
+    <a href="#sec-4"><span class="toc-num">§4</span>Aversão ao Risco & Utilidade</a>
+    <a href="#sec-5"><span class="toc-num">§5</span>Carteira: Livre de Risco + Risco</a>
+    <a href="#sec-6"><span class="toc-num">§6</span>Linha de Alocação de Capital</a>
+    <a href="#sec-7"><span class="toc-num">§7</span>Carteira Ótima do Investidor</a>
+    <a href="#sec-8"><span class="toc-num">§8</span>Curvas de Indiferença</a>
+    <a href="#sec-9"><span class="toc-num">§9</span>Fontes de Risco & Diversificação</a>
+    <a href="#sec-10"><span class="toc-num">§10</span>Sistemático vs. Específico</a>
+    <a href="#sec-11"><span class="toc-num">§11</span>Portfólio com Dois Ativos</a>
+    <a href="#sec-12"><span class="toc-num">§12</span>Mínima Variância</a>
+    <a href="#sec-13"><span class="toc-num">§13</span>Efeito da Correlação</a>
+    <a href="#sec-14"><span class="toc-num">§14</span>Portfólio de Risco Ótimo (P)</a>
+    <a href="#sec-15"><span class="toc-num">§15</span>Otimização com N Ativos · Solver</a>
+  </nav>
+
+  <!-- ============= §1 ============= -->
+  <h2 class="section-title" id="sec-1"><span class="sec-num">§1</span>Dados Históricos & Normalidade</h2>
+  <p class="drop-cap">
+    Para calcular parâmetros estatísticos a partir de dados históricos é preciso definir cinco elementos:
+    <strong>(i)</strong> o ativo, <strong>(ii)</strong> o período total, <strong>(iii)</strong> a desagregação em
+    <em>n</em> subperíodos (diário, mensal, anual), <strong>(iv)</strong> a taxa livre de risco em cada subperíodo
+    <em>r<sub>f,t</sub></em>, e <strong>(v)</strong> o retorno excedente <em>π<sub>t</sub> = r<sub>t</sub> − r<sub>f,t</sub></em>.
+  </p>
+
+  <h4 class="sub-sub">Parâmetros estatísticos e funções do Excel</h4>
+  <table class="data">
+    <thead><tr><th>Parâmetro</th><th>Fórmula / Função Excel</th></tr></thead>
+    <tbody>
+      <tr><td>Retorno médio</td><td><code>=MÉDIA( )</code></td></tr>
+      <tr><td>Média geométrica</td><td>(p<sub>T</sub>/p<sub>0</sub>)<sup>1/n</sup> − 1</td></tr>
+      <tr><td>Prêmio de risco</td><td>média dos retornos excedentes</td></tr>
+      <tr><td>Volatilidade (DP amostral)</td><td><code>=DESVPAD.A( )</code></td></tr>
+      <tr><td>Índice de Sharpe</td><td>prêmio / volatilidade</td></tr>
+      <tr><td>Assimetria (skewness)</td><td><code>=DISTORÇÃO( )</code></td></tr>
+      <tr><td>Curtose (excesso)</td><td><code>=CURT( )</code></td></tr>
+      <tr><td>Jarque-Bera</td><td>JB = (n/6)·[α² + (κ²/4)]</td></tr>
+    </tbody>
+  </table>
+
+  <h4 class="sub-sub">Verificando normalidade na prática (regra 68-95-99,7)</h4>
+  <table class="data">
+    <thead><tr><th>Intervalo</th><th>Probabilidade Teórica (Normal)</th></tr></thead>
+    <tbody>
+      <tr><td>µ ± 1σ</td><td class="num">68,26%</td></tr>
+      <tr><td>µ ± 2σ</td><td class="num">95,44%</td></tr>
+      <tr><td>µ ± 3σ</td><td class="num">99,74%</td></tr>
+      <tr><td>Abaixo de µ − 2σ</td><td class="num">≈ 2,28%</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Estabilidade entre períodos</div>
+    A <strong>volatilidade</strong> tende a ser estável — boa para projeções. Já o <strong>retorno médio</strong>
+    e o <strong>prêmio de risco</strong> variam muito, sendo estimadores fracos. <strong>Assimetria e curtose</strong>
+    podem mudar drasticamente em períodos de crise (compare 2020 vs. 2016-2019).
+  </div>
+
+  <!-- ============= §2 ============= -->
+  <h2 class="section-title" id="sec-2"><span class="sec-num">§2</span>Decisão de Alocação do Capital</h2>
+  <p>A construção de uma carteira envolve duas etapas:</p>
+  <ol>
+    <li><strong>Alocação do capital</strong> — definir quanto da poupança vai para o ativo livre de risco e quanto vai para o portfólio de risco.</li>
+    <li><strong>Alocação dos ativos de risco</strong> — definir como compor o portfólio de risco entre as opções (ações, derivativos, etc.).</li>
+  </ol>
+
+  <div class="formula-display">
+    <span class="label">Definição operacional</span>
+    Carteira de investimento = ativo seguro + portfólio de risco<br>
+    Portfólio de risco = combinação de ativos com risco
+  </div>
+
+  <p>A decisão de alocação depende de dois fatores: (a) o trade-off risco-retorno do portfólio (E[r<sub>P</sub>], σ<sub>P</sub>) e (b) as preferências do investidor por risco (aversão ao risco).</p>
+
+  <!-- ============= §3 ============= -->
+  <h2 class="section-title" id="sec-3"><span class="sec-num">§3</span>Risco, Aposta & Especulação</h2>
+  <p>Antes de modelar a aversão ao risco, distinguir dois conceitos centrais:</p>
+  <ul>
+    <li><strong>Especulação</strong> — elevar o risco em troca de um <em>ganho proporcional esperado</em> (há prêmio de risco).</li>
+    <li><strong>Aposta (jogo)</strong> — investir em resultado incerto <em>sem compensação proporcional</em> pelo risco.</li>
+  </ul>
+  <p>A diferença essencial é a presença ou ausência de <strong>prêmio de risco</strong>. Investidor avesso aceita especular, mas recusa apostar.</p>
+
+  <h4 class="sub-sub">Jogo justo — exemplo clássico</h4>
+  <p>Você tem R$ 100. Lance de moeda: cara → ganha R$ 20; coroa → perde R$ 20.</p>
+  <div class="formula">
+    E(r) = 0,5·(20%) + 0,5·(−20%) = <strong>0%</strong><br>
+    σ = √[0,5·(20%)² + 0,5·(−20%)²] = <strong>20%</strong>
+  </div>
+  <p>O risco subiu (de 0% para 20%) sem aumento do retorno esperado. Investidor avesso recusa.</p>
+
+  <!-- ============= §4 ============= -->
+  <h2 class="section-title" id="sec-4"><span class="sec-num">§4</span>Aversão ao Risco & Função Utilidade</h2>
+  <p>Os economistas modelam as escolhas dos investidores via função utilidade quadrática:</p>
+
+  <div class="formula-display">
+    <span class="label">Função Utilidade do Investidor</span>
+    U = E(r) − ½ · A · σ²
+  </div>
+
+  <table class="data">
+    <thead><tr><th>Valor de A</th><th>Perfil</th><th>Interpretação</th></tr></thead>
+    <tbody>
+      <tr><td class="num">A &gt; 0</td><td>Avesso ao risco</td><td>Investidor padrão — risco penaliza U</td></tr>
+      <tr><td class="num">A = 0</td><td>Neutro</td><td>Risco não afeta U; decide só por E(r)</td></tr>
+      <tr><td class="num">A &lt; 0</td><td>Amante do risco</td><td>Risco amplia U</td></tr>
+    </tbody>
+  </table>
+
+  <h4 class="sub-sub">Aplicação numérica</h4>
+  <p>Para A=2, qual carteira maximiza U?</p>
+  <table class="data">
+    <thead><tr><th>Investimento</th><th class="num">E(r)</th><th class="num">σ²</th><th class="num">U = E(r) − ½·A·σ²</th></tr></thead>
+    <tbody>
+      <tr><td>Livre de risco (L)</td><td class="num">5%</td><td class="num">0</td><td class="num pos">5,0%</td></tr>
+      <tr><td>Carteira B (baixo)</td><td class="num">7%</td><td class="num">0,3%</td><td class="num">6,7%</td></tr>
+      <tr><td>Carteira M (médio)</td><td class="num">9%</td><td class="num">1,0%</td><td class="num">8,0%</td></tr>
+      <tr><td>Carteira A (alto)</td><td class="num">13%</td><td class="num">4,0%</td><td class="num pos"><strong>9,0%</strong></td></tr>
+    </tbody>
+  </table>
+  <p>A maximiza U para A=2. <strong>Para A=18:</strong> U(A) = 13% − 36% = −23%, e o investidor escolhe L (U=5%). <strong>Para A=0:</strong> compara só E(r) — A vence com 13%.</p>
+
+  <!-- ============= §5 ============= -->
+  <h2 class="section-title" id="sec-5"><span class="sec-num">§5</span>Carteira: Livre de Risco + Portfólio de Risco</h2>
+  <p>Considere y = proporção do capital alocada no portfólio de risco P. O restante (1 − y) vai para o livre de risco.</p>
+
+  <div class="grid-2">
+    <div class="formula-display">
+      <span class="label">Retorno esperado da carteira</span>
+      E(r<sub>C</sub>) = r<sub>f</sub> + y · [E(r<sub>P</sub>) − r<sub>f</sub>]
+    </div>
+    <div class="formula-display">
+      <span class="label">Volatilidade da carteira</span>
+      σ<sub>C</sub> = y · σ<sub>P</sub>
+    </div>
+  </div>
+
+  <p>O retorno é a taxa livre de risco mais o prêmio multiplicado por y. A volatilidade é proporcional ao percentual no portfólio de risco. <strong>y &gt; 1</strong> implica alavancagem (tomar emprestado a r<sub>f</sub> para ampliar a posição em P).</p>
+
+  <h4 class="sub-sub">Exemplo numérico (r<sub>f</sub>=7%, E(r<sub>P</sub>)=15%, σ<sub>P</sub>=22%)</h4>
+  <table class="data">
+    <thead><tr><th class="num">y</th><th class="num">E(r<sub>C</sub>)</th><th class="num">σ<sub>C</sub></th></tr></thead>
+    <tbody>
+      <tr><td class="num">0</td><td class="num">7,0%</td><td class="num">0,0%</td></tr>
+      <tr><td class="num">0,25</td><td class="num">9,0%</td><td class="num">5,5%</td></tr>
+      <tr><td class="num">0,50</td><td class="num">11,0%</td><td class="num">11,0%</td></tr>
+      <tr><td class="num">1,00</td><td class="num">15,0%</td><td class="num">22,0%</td></tr>
+      <tr><td class="num">1,50</td><td class="num pos">19,0%</td><td class="num neg">33,0%</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============= §6 ============= -->
+  <h2 class="section-title" id="sec-6"><span class="sec-num">§6</span>Linha de Alocação de Capital (LAC)</h2>
+  <p>Substituindo y = σ<sub>C</sub>/σ<sub>P</sub> na equação de E(r<sub>C</sub>):</p>
+
+  <div class="formula-display">
+    <span class="label">Equação da LAC</span>
+    E(r<sub>C</sub>) = r<sub>f</sub> + [(E(r<sub>P</sub>) − r<sub>f</sub>) / σ<sub>P</sub>] · σ<sub>C</sub>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">Resultado central</div>
+    A inclinação da LAC é exatamente o <strong>Índice de Sharpe</strong> do portfólio P:
+    S<sub>P</sub> = (E(r<sub>P</sub>) − r<sub>f</sub>) / σ<sub>P</sub>.
+    O Sharpe da carteira final é igual ao Sharpe de P para qualquer y &gt; 0 — adicionar livre de risco
+    reduz prêmio e risco proporcionalmente.
+  </div>
+
+  <h4 class="sub-sub">Exemplo</h4>
+  <p>Carteira: 30% em r<sub>f</sub>=10% e 70% em P com E(r<sub>P</sub>)=15%, σ<sub>P</sub>=25%.</p>
+  <div class="formula">
+    S<sub>C</sub> = S<sub>P</sub> = (15% − 10%) / 25% = 5% / 25% = <strong>0,20</strong>
+  </div>
+
+  <!-- ============= §7 ============= -->
+  <h2 class="section-title" id="sec-7"><span class="sec-num">§7</span>Carteira Ótima do Investidor</h2>
+  <p>Substituindo E(r<sub>C</sub>) e σ<sub>C</sub> na utilidade:</p>
+  <div class="formula">
+    U<sub>C</sub> = r<sub>f</sub> + y·[E(r<sub>P</sub>) − r<sub>f</sub>] − ½·A·(y·σ<sub>P</sub>)²<br>
+    &nbsp;&nbsp;&nbsp;= (−½·A·σ²<sub>P</sub>)·y² + [E(r<sub>P</sub>) − r<sub>f</sub>]·y + r<sub>f</sub>
+  </div>
+  <p>Função quadrática em y, côncava (já que A &gt; 0). Derivando e igualando a zero:</p>
+
+  <div class="formula-display">
+    <span class="label">Alocação ótima — fórmula central</span>
+    y* = (E(r<sub>P</sub>) − r<sub>f</sub>) / (A · σ²<sub>P</sub>)
+  </div>
+
+  <p>A alocação ótima é <strong>diretamente proporcional ao prêmio de risco</strong> e <strong>inversamente proporcional à aversão ao risco e à variância</strong>.</p>
+
+  <h4 class="sub-sub">Sensibilidade a A (r<sub>f</sub>=10%, E(r<sub>P</sub>)=15%, σ<sub>P</sub>=25%)</h4>
+  <table class="data">
+    <thead><tr><th class="num">A</th><th class="num">y*</th><th>Interpretação</th></tr></thead>
+    <tbody>
+      <tr><td class="num">0,5</td><td class="num pos">160%</td><td>Pouco avesso — alavancado</td></tr>
+      <tr><td class="num">1</td><td class="num">80%</td><td>Sem alavancagem</td></tr>
+      <tr><td class="num">2</td><td class="num">40%</td><td>Padrão</td></tr>
+      <tr><td class="num">4</td><td class="num">20%</td><td>Bem avesso</td></tr>
+      <tr><td class="num">16</td><td class="num">5%</td><td>Muito avesso — quase tudo em r<sub>f</sub></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Exemplo completo · A = 2</div>
+    <p>(1) <code>y* = 0,05 / (2 · 0,0625) = 40%</code></p>
+    <p>(2) <code>σ<sub>C</sub> = 0,40 · 25% = 10%</code></p>
+    <p>(3) <code>E(r<sub>C</sub>) = 10% + 0,40·5% = 12%</code></p>
+    <p>(4) <code>U = 12% − ½·2·(10%)² = 11%</code></p>
+    <p>(5) Verificação na LAC: <code>10% + (5%/25%)·10% = 12% ✓</code></p>
+  </div>
+
+  <!-- ============= §8 ============= -->
+  <h2 class="section-title" id="sec-8"><span class="sec-num">§8</span>Curvas de Indiferença</h2>
+  <p>Curvas de indiferença ligam todas as combinações (σ, E[r]) que dão a <strong>mesma utilidade</strong> para um dado A. Fixando U:</p>
+  <div class="formula-display">
+    E(r) = U + ½ · A · σ²
+  </div>
+  <p>É uma parábola ascendente em σ. Curvas mais altas representam maior utilidade.</p>
+
+  <h4 class="sub-sub">A carteira ótima geometricamente</h4>
+  <ul>
+    <li><strong>Pontos abaixo da LAC:</strong> dominados — podem ser melhorados.</li>
+    <li><strong>Pontos acima da LAC:</strong> infactíveis com r<sub>f</sub> e P.</li>
+    <li><strong>Ponto de tangência:</strong> a curva de indiferença mais alta que ainda toca a LAC. Aqui a inclinação da curva de indiferença iguala a inclinação da LAC (o Sharpe).</li>
+  </ul>
+
+  <!-- ============= §9 ============= -->
+  <h2 class="section-title" id="sec-9"><span class="sec-num">§9</span>Fontes de Risco & Diversificação</h2>
+  <p>Os retornos de uma ação são afetados por dois tipos de fatores:</p>
+  <ol>
+    <li><strong>Macroeconômicos</strong> — ciclos de negócios, inflação, juros, câmbio, política monetária. Afetam o mercado todo.</li>
+    <li><strong>Específicos da empresa</strong> — sucesso de produtos, gestão, mudanças setoriais. Afetam apenas aquela firma.</li>
+  </ol>
+
+  <h4 class="sub-sub">Exemplo: câmbio</h4>
+  <p><strong>EMBRAER (exportadora):</strong> dólar mais alto → receitas em USD valem mais em BRL → ações sobem. <strong>LATAM (importadora):</strong> dólar mais alto → custos em USD pesam mais → ações caem.</p>
+  <p>Carteira 50/50 EMBRAER + LATAM cancela parcialmente o impacto cambial. Diversificação em ação.</p>
+
+  <!-- ============= §10 ============= -->
+  <h2 class="section-title" id="sec-10"><span class="sec-num">§10</span>Risco Sistemático vs. Específico</h2>
+  <p>Adicionar ativos diminui o risco — até um limite. O risco se decompõe em:</p>
+  <table class="data">
+    <thead><tr><th>Componente</th><th>Outros nomes</th><th>Pode ser eliminado?</th></tr></thead>
+    <tbody>
+      <tr><td>Risco sistemático</td><td>Risco de mercado / não-diversificável</td><td><strong>NÃO</strong> — limite inferior</td></tr>
+      <tr><td>Risco específico</td><td>Idiossincrático / exclusivo / diversificável</td><td><strong>SIM</strong> — via diversificação</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Evidência empírica · Statman, 1987</div>
+    DP médio de carteira com 1 ação ≈ <strong>49,2%</strong>. Adicionando ações, o risco cai rapidamente. No limite (centenas de ações) → ≈ <strong>19,2%</strong>. Esse é o piso — o risco de mercado.
+  </div>
+
+  <p><strong>Lição prática:</strong> com 20–30 ações bem escolhidas elimina-se a maior parte do risco específico. O que sobra é sistemático.</p>
+
+  <!-- ============= §11 ============= -->
+  <h2 class="section-title" id="sec-11"><span class="sec-num">§11</span>Portfólio com Dois Ativos com Risco</h2>
+  <p>Dois ativos: títulos de dívida (D) com peso w<sub>D</sub> e ações (E) com peso w<sub>E</sub>, sob a restrição w<sub>D</sub> + w<sub>E</sub> = 1.</p>
+
+  <div class="formula-display">
+    <span class="label">Retorno esperado</span>
+    E(r<sub>P</sub>) = w<sub>D</sub>·E(r<sub>D</sub>) + w<sub>E</sub>·E(r<sub>E</sub>)
+  </div>
+
+  <div class="formula-display">
+    <span class="label">Volatilidade — atenção: NÃO é média ponderada!</span>
+    σ<sub>P</sub> = √[ w²<sub>D</sub>·σ²<sub>D</sub> + w²<sub>E</sub>·σ²<sub>E</sub> + 2·w<sub>D</sub>·w<sub>E</sub>·Cov(r<sub>D</sub>, r<sub>E</sub>) ]
+  </div>
+
+  <p>Onde <code>Cov(r<sub>D</sub>, r<sub>E</sub>) = ρ<sub>DE</sub> · σ<sub>D</sub> · σ<sub>E</sub></code>, com ρ ∈ [−1, +1].</p>
+
+  <div class="callout success">
+    <div class="callout-title">Por que a correlação importa</div>
+    O termo da covariância é o que faz a diversificação <em>funcionar</em>:
+    <ul style="margin-top:8px">
+      <li><strong>ρ = +1</strong> — ativos se movem juntos, σ<sub>P</sub> = média ponderada das volatilidades. Sem benefício.</li>
+      <li><strong>ρ = 0</strong> — diversificação parcial, σ<sub>P</sub> &lt; média ponderada.</li>
+      <li><strong>ρ = −1</strong> — diversificação máxima. Existem pesos que zeram σ<sub>P</sub>.</li>
+    </ul>
+  </div>
+
+  <!-- ============= §12 ============= -->
+  <h2 class="section-title" id="sec-12"><span class="sec-num">§12</span>Carteira de Mínima Variância</h2>
+  <p>Existem pesos que minimizam σ<sub>P</sub>². Derivando em w<sub>D</sub> e igualando a zero:</p>
+
+  <div class="formula-display">
+    <span class="label">Peso de mínima variância</span>
+    w<sub>D</sub><sup>min</sup> = [σ²<sub>E</sub> − Cov(r<sub>D</sub>, r<sub>E</sub>)] / [σ²<sub>D</sub> + σ²<sub>E</sub> − 2·Cov(r<sub>D</sub>, r<sub>E</sub>)]
+  </div>
+
+  <h4 class="sub-sub">Exemplo (E(r<sub>D</sub>)=8%, σ<sub>D</sub>=12%; E(r<sub>E</sub>)=13%, σ<sub>E</sub>=20%; ρ=0,3)</h4>
+  <div class="formula">
+    Cov = 0,3 · 0,12 · 0,20 = 0,0072 = <strong>0,72%</strong><br>
+    Para <strong>50/50</strong>: σ²<sub>P</sub> = 0,25·(0,12)² + 0,25·(0,20)² + 2·0,25·0,0072 ≈ 0,0172 → σ<sub>P</sub> ≈ <strong>13,11%</strong><br>
+    Para <strong>mínima variância</strong>: w<sub>D</sub><sup>min</sup> = (0,04 − 0,0072) / (0,0144 + 0,04 − 2·0,0072) = 0,0328 / 0,04 = <strong>82%</strong><br>
+    σ<sup>min</sup><sub>P</sub> ≈ <strong>11,45%</strong>
+  </div>
+
+  <p>A alocação 50/50 dá σ ≈ 13,11%; a ótima de mínima variância (82% em D) reduz para σ ≈ 11,45% — abaixo até da volatilidade individual de D (12%). Diversificação criando valor.</p>
+
+  <!-- ============= §13 ============= -->
+  <h2 class="section-title" id="sec-13"><span class="sec-num">§13</span>Efeito da Correlação na Fronteira</h2>
+  <p>Mantendo σ<sub>D</sub>=12%, σ<sub>E</sub>=20% e variando ρ:</p>
+  <table class="data">
+    <thead><tr><th class="num">ρ</th><th class="num">Cov</th><th class="num">σ<sub>P</sub> (50/50)</th><th>Comentário</th></tr></thead>
+    <tbody>
+      <tr><td class="num">+1,0</td><td class="num">0,0240</td><td class="num neg">≈ 16,0%</td><td>Sem benefício</td></tr>
+      <tr><td class="num">+0,3</td><td class="num">0,0072</td><td class="num">≈ 13,1%</td><td>Diversificação parcial</td></tr>
+      <tr><td class="num">0,0</td><td class="num">0,0000</td><td class="num">≈ 11,7%</td><td>Diversificação plena</td></tr>
+      <tr><td class="num">−0,3</td><td class="num">−0,0072</td><td class="num pos">≈ 10,1%</td><td>Mais diversificação</td></tr>
+      <tr><td class="num">−1,0</td><td class="num">−0,0240</td><td class="num pos">≈ 4,0%</td><td>Diversificação máxima</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Caso especial · ρ = −1</div>
+    Existe combinação que zera σ<sub>P</sub>: w<sub>D</sub> = σ<sub>E</sub>/(σ<sub>D</sub>+σ<sub>E</sub>) e w<sub>E</sub> = σ<sub>D</sub>/(σ<sub>D</sub>+σ<sub>E</sub>). No exemplo: w<sub>D</sub> = 20/32 ≈ 62,5%, w<sub>E</sub> ≈ 37,5%. Ações e títulos se cancelam perfeitamente.
+  </div>
+
+  <!-- ============= §14 ============= -->
+  <h2 class="section-title" id="sec-14"><span class="sec-num">§14</span>Portfólio de Risco Ótimo (P)</h2>
+  <p class="lead">A escolha do portfólio de risco determina a inclinação da LAC. Para um investidor avesso ao risco, uma LAC mais inclinada é sempre preferível — logo, o portfólio de risco ótimo (P) é aquele com o <strong>maior Sharpe possível</strong>.</p>
+
+  <p>No caso de dois ativos de risco, escolhe-se w<sub>D</sub> e w<sub>E</sub> que maximizam:</p>
+
+  <div class="formula-display">
+    <span class="label">Maximizar o Sharpe do portfólio</span>
+    S<sub>P</sub> = [w<sub>D</sub>·E(r<sub>D</sub>) + w<sub>E</sub>·E(r<sub>E</sub>) − r<sub>f</sub>] / σ<sub>P</sub>
+  </div>
+
+  <p>Resolvendo (com w<sub>E</sub> = 1 − w<sub>D</sub>) e otimizando em w<sub>D</sub>, chega-se à fórmula fechada:</p>
+
+  <div class="formula-display">
+    <span class="label">Peso ótimo · 2 ativos de risco</span>
+    w<sub>D</sub>* = [E(R<sub>D</sub>)·σ²<sub>E</sub> − E(R<sub>E</sub>)·Cov(r<sub>D</sub>, r<sub>E</sub>)] / [E(R<sub>D</sub>)·σ²<sub>E</sub> + E(R<sub>E</sub>)·σ²<sub>D</sub> − (E(R<sub>D</sub>)+E(R<sub>E</sub>))·Cov(r<sub>D</sub>, r<sub>E</sub>)]
+  </div>
+  <p>Onde E(R<sub>i</sub>) = E(r<sub>i</sub>) − r<sub>f</sub> são os <strong>prêmios de risco</strong>.</p>
+
+  <h4 class="sub-sub">Exemplo resolvido · Atividade da Aula 12</h4>
+  <p>Dados: D com E(r)=15%, σ=20%; E com E(r)=25%, σ=40%; r<sub>f</sub>=5%; Cov(r<sub>D</sub>, r<sub>E</sub>) = 4% = 0,04.</p>
+  <div class="formula">
+    <strong>Prêmios:</strong> E(R<sub>D</sub>) = 10%, E(R<sub>E</sub>) = 20%<br>
+    <strong>w<sub>D</sub>* :</strong> num = 0,10·0,16 − 0,20·0,04 = 0,016 − 0,008 = 0,008<br>
+    den = 0,10·0,16 + 0,20·0,04 − (0,10+0,20)·0,04 = 0,016 + 0,008 − 0,012 = 0,012<br>
+    <strong>w<sub>D</sub>* = 0,008/0,012 ≈ 66,67%</strong> &nbsp;&nbsp;w<sub>E</sub>* ≈ 33,33%<br><br>
+    <strong>E(r<sub>P</sub>) = 0,6667·15% + 0,3333·25% ≈ 18,33%</strong><br>
+    <strong>σ²<sub>P</sub> = 0,4444·0,04 + 0,1111·0,16 + 2·0,6667·0,3333·0,04 ≈ 0,0533</strong><br>
+    <strong>σ<sub>P</sub> ≈ 23,09%</strong>&nbsp;&nbsp;&nbsp;<strong>Sharpe = (18,33%−5%)/23,09% ≈ 0,577</strong>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">Aplicando a alocação ótima · A=5, W=R$12.000.000</div>
+    y* = (18,33% − 5%) / (5 · 5,33%) = 13,33% / 26,67% ≈ <strong>50%</strong><br>
+    Investimento em P: R$ 6.000.000 → <strong>D: R$ 4.000.000 (66,67%·6M)</strong>, <strong>E: R$ 2.000.000 (33,33%·6M)</strong><br>
+    Letras do Tesouro: <strong>R$ 6.000.000</strong> (50%)<br>
+    E(r<sub>C</sub>) = 5% + 0,5·13,33% ≈ <strong>11,67%</strong>; σ<sub>C</sub> = 0,5·23,09% ≈ <strong>11,55%</strong>
+  </div>
+
+  <!-- ============= §15 ============= -->
+  <h2 class="section-title" id="sec-15"><span class="sec-num">§15</span>Otimização com N Ativos · Solver</h2>
+  <p>O processo se generaliza para N &gt; 2 ativos. A dificuldade é que o cálculo dos pesos ótimos w* fica mais complexo — não há fórmula fechada simples.</p>
+
+  <div class="formula-display">
+    <span class="label">Generalização para N ativos</span>
+    E(r<sub>P</sub>) = Σ<sub>i=1</sub><sup>N</sup> w<sub>i</sub>·E(r<sub>i</sub>)<br>
+    σ²<sub>P</sub> = Σ<sub>i=1</sub><sup>N</sup> Σ<sub>j=1</sub><sup>N</sup> w<sub>i</sub>·w<sub>j</sub>·Cov(r<sub>i</sub>, r<sub>j</sub>)<br>
+    Σ<sub>i=1</sub><sup>N</sup> w<sub>i</sub> = 1
+  </div>
+
+  <p>O problema vira:</p>
+  <div class="formula">
+    max<sub>w</sub> &nbsp;S<sub>P</sub> = [Σ w<sub>i</sub>·E(r<sub>i</sub>) − r<sub>f</sub>] / √[Σ Σ w<sub>i</sub>·w<sub>j</sub>·Cov(r<sub>i</sub>, r<sub>j</sub>)]<br>
+    sujeito a Σ w<sub>i</sub> = 1
+  </div>
+
+  <h4 class="sub-sub">Resolvendo via Solver (MS-Excel)</h4>
+  <ol>
+    <li>Habilitar o Solver em <strong>Suplementos do Excel</strong>.</li>
+    <li>Definir Objetivo: célula do Sharpe S<sub>P</sub>; selecionar <strong>Máx</strong>.</li>
+    <li>Alterando células variáveis: vetor de pesos w<sub>i</sub>.</li>
+    <li>Adicionar restrição: Σw<sub>i</sub> = 1.</li>
+    <li>Para permitir <strong>posições short</strong> (pesos negativos), <em>desmarcar</em> "Tornar variáveis irrestritas não negativas".</li>
+    <li>Método de solução: <strong>GRG Não Linear</strong> (Sharpe é função não-linear).</li>
+  </ol>
+
+  <h4 class="sub-sub">Insight da Atividade da Aula 13 (VALE3, PETR4, ITUB4)</h4>
+  <p>No exemplo da disciplina:</p>
+  <ul>
+    <li><strong>Sharpe sem restrições:</strong> w<sub>VALE</sub>=64,8%, w<sub>PETR</sub>=148,2%, w<sub>ITUB</sub>=−113%. Note o peso negativo (short) em ITUB4 e a alavancagem em PETR4.</li>
+    <li><strong>Sharpe com restrição (sem shorts):</strong> a fronteira eficiente fica menor, e os pesos ótimos ficam todos ≥ 0 — Sharpe atingível é menor.</li>
+  </ul>
+
+  <div class="callout">
+    <div class="callout-title">Princípio da separação (Tobin)</div>
+    Todos os investidores — independentemente de A — devem manter <strong>o mesmo portfólio de risco P</strong> (o de maior Sharpe). O que varia entre investidores é apenas <strong>y*</strong>, a fração alocada em P. A escolha do portfólio de risco é separada da escolha de quanto risco assumir.
+  </div>
+
+  <!-- summary -->
+  <h2 class="section-title">Síntese · O que cai na P3</h2>
+  <ol>
+    <li>Calcular y* para diferentes A.</li>
+    <li>Mostrar que Sharpe da carteira (livre+risco) = Sharpe de P para qualquer y &gt; 0.</li>
+    <li>Calcular σ<sub>P</sub> de portfólios de 2 ativos com diferentes ρ.</li>
+    <li>Encontrar a alocação de mínima variância.</li>
+    <li>Encontrar w<sub>D</sub>* do portfólio de risco ótimo (maior Sharpe).</li>
+    <li>Interpretar geometricamente: LAC + curvas de indiferença + fronteira eficiente.</li>
+    <li>Generalizar para N ativos via Solver — formulação do problema, restrições, leitura dos resultados.</li>
+  </ol>
+
+</section>
+
+<!-- ======================================================
+     PANEL 2 — QUIZ POR TÓPICO
+     ====================================================== -->
+<section class="panel" id="panel-quiz">
+
+  <div class="quiz-hero">
+    <h2>Quiz <em>por tópico</em></h2>
+    <p>Questões de múltipla escolha, V/F e numéricas com feedback imediato. Se você errar, o sistema explica exatamente <strong>onde</strong> está o erro conceitual ou de cálculo. Filtre por tópico para focar nas suas fraquezas.</p>
+  </div>
+
+  <div class="progress-card">
+    <div class="stat-block">
+      <div class="stat-label">Respondidas</div>
+      <div class="stat-value" id="qz-answered">0</div>
+      <div class="progress-bar"><div class="progress-bar-fill" id="qz-progress"></div></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Acertos</div>
+      <div class="stat-value ok" id="qz-correct">0</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Erros</div>
+      <div class="stat-value accent" id="qz-wrong">0</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Taxa de acerto</div>
+      <div class="stat-value" id="qz-rate">—</div>
+    </div>
+  </div>
+
+  <div class="quiz-controls">
+    <span class="filter-label">Filtrar por tópico:</span>
+    <button class="chip active" data-filter="all">Todos</button>
+    <button class="chip" data-filter="historico">Dados Históricos</button>
+    <button class="chip" data-filter="utilidade">Utilidade & Aversão</button>
+    <button class="chip" data-filter="lac">LAC & y*</button>
+    <button class="chip" data-filter="diversificacao">Diversificação</button>
+    <button class="chip" data-filter="dois-ativos">2 Ativos / Min Var</button>
+    <button class="chip" data-filter="otimo">Portfólio Ótimo (P)</button>
+    <button class="chip" data-filter="n-ativos">N Ativos / Solver</button>
+  </div>
+
+  <div class="quiz-controls">
+    <span class="filter-label">Filtrar por tipo:</span>
+    <button class="chip active" data-type="all">Todos</button>
+    <button class="chip" data-type="mc">Múltipla Escolha</button>
+    <button class="chip" data-type="vf">V ou F</button>
+    <button class="chip" data-type="num">Numérica</button>
+  </div>
+
+  <div class="quiz-controls">
+    <button class="btn ghost" id="qz-reset">↻ Resetar progresso</button>
+    <button class="btn ghost" id="qz-shuffle">⇄ Embaralhar</button>
+  </div>
+
+  <div id="quiz-list"></div>
+
+</section>
+
+<!-- ======================================================
+     PANEL 3 — SIMULADO P3
+     ====================================================== -->
+<section class="panel" id="panel-exam">
+
+  <div id="exam-intro">
+    <div class="sim-hero">
+      <h2>Simulado <em>P3</em></h2>
+      <p>Prova oficial de simulação cobrindo todo o conteúdo de Alocação de Capital, Otimização e Diversificação. Sem feedback durante a prova — você só vê os resultados ao terminar, igual ao exame real.</p>
+      <div class="sim-meta-grid">
+        <div>
+          <div class="label">Questões</div>
+          <div class="value">15</div>
+        </div>
+        <div>
+          <div class="label">Tempo</div>
+          <div class="value">60 min</div>
+        </div>
+        <div>
+          <div class="label">Aprovação</div>
+          <div class="value">≥ 60%</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:32px">
+      <button class="btn danger" id="exam-start" style="font-size:15px;padding:14px 32px">▶ Iniciar Simulado</button>
+      <p style="margin-top:16px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:var(--ink-mute)">
+        Recomendação: faça o quiz por tópico antes
+      </p>
+    </div>
+  </div>
+
+  <div id="exam-running" class="hidden">
+    <div class="sim-timer">
+      <div>
+        <div class="sim-progress-mini" id="exam-progress-text">Questão 1 de 15</div>
+      </div>
+      <div class="timer-display" id="exam-timer">60:00</div>
+    </div>
+    <div id="exam-list"></div>
+    <div style="text-align:center; margin-top:32px">
+      <button class="btn danger" id="exam-submit" style="font-size:15px;padding:14px 32px">⏎ Entregar Prova</button>
+    </div>
+  </div>
+
+  <div id="exam-results" class="hidden"></div>
+
+</section>
+
+<!-- ======================================================
+     PANEL 4 — FORMULÁRIO
+     ====================================================== -->
+<section class="panel" id="panel-formulary">
+
+  <h1>Formulário <em style="font-style:italic;color:var(--accent)">de Referência</em></h1>
+  <p class="lead">Todas as fórmulas da P3 reunidas — leve para a prova mentalmente, copie em uma folha, ou use durante o simulado para checar memória.</p>
+
+  <h2 class="section-title">Utilidade & Alocação</h2>
+  <table class="data">
+    <thead><tr><th>Conceito</th><th>Fórmula</th></tr></thead>
+    <tbody>
+      <tr><td>Função utilidade</td><td><code>U = E(r) − ½ · A · σ²</code></td></tr>
+      <tr><td>Retorno carteira (livre+risco)</td><td><code>E(r<sub>C</sub>) = r<sub>f</sub> + y · [E(r<sub>P</sub>) − r<sub>f</sub>]</code></td></tr>
+      <tr><td>Volatilidade carteira (livre+risco)</td><td><code>σ<sub>C</sub> = y · σ<sub>P</sub></code></td></tr>
+      <tr><td>Linha de Alocação de Capital</td><td><code>E(r<sub>C</sub>) = r<sub>f</sub> + [(E(r<sub>P</sub>) − r<sub>f</sub>)/σ<sub>P</sub>] · σ<sub>C</sub></code></td></tr>
+      <tr><td>Inclinação da LAC = Sharpe</td><td><code>S = (E(r<sub>P</sub>) − r<sub>f</sub>) / σ<sub>P</sub></code></td></tr>
+      <tr><td>Alocação ótima y*</td><td><code>y* = (E(r<sub>P</sub>) − r<sub>f</sub>) / (A · σ²<sub>P</sub>)</code></td></tr>
+      <tr><td>Curva de indiferença (E[r] em função de σ)</td><td><code>E(r) = U + ½ · A · σ²</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Portfólio com 2 Ativos</h2>
+  <table class="data">
+    <thead><tr><th>Conceito</th><th>Fórmula</th></tr></thead>
+    <tbody>
+      <tr><td>Retorno esperado</td><td><code>E(r<sub>P</sub>) = w<sub>D</sub>·E(r<sub>D</sub>) + w<sub>E</sub>·E(r<sub>E</sub>)</code></td></tr>
+      <tr><td>Variância</td><td><code>σ²<sub>P</sub> = w²<sub>D</sub>·σ²<sub>D</sub> + w²<sub>E</sub>·σ²<sub>E</sub> + 2·w<sub>D</sub>·w<sub>E</sub>·Cov</code></td></tr>
+      <tr><td>Covariância via correlação</td><td><code>Cov(r<sub>D</sub>, r<sub>E</sub>) = ρ<sub>DE</sub> · σ<sub>D</sub> · σ<sub>E</sub></code></td></tr>
+      <tr><td>Domínio da correlação</td><td><code>ρ ∈ [−1, +1]</code></td></tr>
+      <tr><td>Mínima variância — w<sub>D</sub><sup>min</sup></td><td><code>(σ²<sub>E</sub> − Cov) / (σ²<sub>D</sub> + σ²<sub>E</sub> − 2·Cov)</code></td></tr>
+      <tr><td>Caso ρ = −1 (σ<sub>P</sub> = 0)</td><td><code>w<sub>D</sub> = σ<sub>E</sub>/(σ<sub>D</sub>+σ<sub>E</sub>)</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Portfólio de Risco Ótimo (2 ativos)</h2>
+  <div class="formula-display">
+    <span class="label">w<sub>D</sub>* — máximo Sharpe</span>
+    w<sub>D</sub>* = [E(R<sub>D</sub>)·σ²<sub>E</sub> − E(R<sub>E</sub>)·Cov] / [E(R<sub>D</sub>)·σ²<sub>E</sub> + E(R<sub>E</sub>)·σ²<sub>D</sub> − (E(R<sub>D</sub>)+E(R<sub>E</sub>))·Cov]
+  </div>
+  <p style="font-size:14px;color:var(--ink-mute);margin-top:-8px">Onde E(R<sub>i</sub>) = E(r<sub>i</sub>) − r<sub>f</sub> (prêmio de risco).</p>
+
+  <h2 class="section-title">N Ativos & Solver</h2>
+  <div class="formula-display">
+    max<sub>w</sub> &nbsp;S<sub>P</sub> = [Σw<sub>i</sub>·E(r<sub>i</sub>) − r<sub>f</sub>] / √[ΣΣ w<sub>i</sub>·w<sub>j</sub>·Cov(r<sub>i</sub>, r<sub>j</sub>)]<br>
+    s.a. Σw<sub>i</sub> = 1
+  </div>
+
+  <h2 class="section-title">Risco</h2>
+  <table class="data">
+    <thead><tr><th>Tipo</th><th>Outros nomes</th><th>Diversificável?</th></tr></thead>
+    <tbody>
+      <tr><td>Sistemático</td><td>Mercado / não-diversificável</td><td>Não</td></tr>
+      <tr><td>Específico</td><td>Idiossincrático / exclusivo</td><td>Sim</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Funções do Excel</h2>
+  <table class="data">
+    <tbody>
+      <tr><td><code>=MÉDIA( )</code></td><td>Média aritmética</td></tr>
+      <tr><td><code>=DESVPAD.A( )</code></td><td>Desvio padrão amostral</td></tr>
+      <tr><td><code>=DISTORÇÃO( )</code> / <code>=SKEW( )</code></td><td>Assimetria</td></tr>
+      <tr><td><code>=CURT( )</code> / <code>=KURT( )</code></td><td>Excesso de curtose</td></tr>
+      <tr><td><code>=CONT.SES( )</code></td><td>Contagem condicional (testar 68-95-99,7)</td></tr>
+      <tr><td><code>=COVARIAÇÃO.S( )</code></td><td>Covariância amostral</td></tr>
+      <tr><td><code>=CORREL( )</code></td><td>Correlação</td></tr>
+      <tr><td><code>=MÉDIA.GEOMÉTRICA( )</code></td><td>Aplicada sobre (1 + r)</td></tr>
+    </tbody>
+  </table>
+
+</section>
+
+</main>
+
+<button class="to-top" id="to-top" aria-label="Voltar ao topo">↑</button>
+
+<footer>
+  <p>Finanças I — REC3600 · FEA-RP/USP · 2026.1 · Material de Estudo Pessoal · Bons Estudos</p>
+</footer>
+
+<script>
+/* ============================================
+   QUESTION BANK — comprehensive coverage
+   tópicos: historico, utilidade, lac, diversificacao,
+            dois-ativos, otimo, n-ativos
+   tipos: mc (múltipla escolha), vf (verdadeiro/falso), num (numérica)
+   ============================================ */
+const QUESTIONS = [
+  // ============= HISTÓRICO =============
+  {
+    id: 1, topic: "historico", type: "mc", tag: "Aula 8 · §1",
+    stem: "Para uma análise de dados históricos com base em retornos excedentes, qual é o conjunto MÍNIMO de elementos que precisa ser definido?",
+    options: [
+      "(1) ativo, (2) retorno médio, (3) volatilidade",
+      "(1) ativo, (2) período total, (3) desagregação em n subperíodos, (4) taxa livre de risco em cada subperíodo, (5) retorno excedente em cada subperíodo",
+      "(1) ativo, (2) Sharpe, (3) Jarque-Bera",
+      "(1) ativo, (2) horizonte de investimento, (3) índice de referência"
+    ],
+    correct: 1,
+    explanation: "<p>Os <strong>cinco elementos</strong> exigidos pelo material são: o ativo, o período total de análise, a desagregação em <em>n</em> subperíodos (diário/mensal/anual), a taxa livre de risco em cada subperíodo (r<sub>f,t</sub>) e o retorno excedente em cada subperíodo (π<sub>t</sub> = r<sub>t</sub> − r<sub>f,t</sub>).</p><p>Sem r<sub>f,t</sub> em cada subperíodo, não dá para construir os retornos excedentes — base do cálculo do prêmio de risco e do Sharpe.</p>"
+  },
+  {
+    id: 2, topic: "historico", type: "vf", tag: "Aula 8 · §1.4",
+    stem: "Em termos de estabilidade entre períodos, a volatilidade tende a ser uma estimativa MUITO MAIS confiável para projeções futuras do que o retorno médio.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 0,
+    explanation: "<p><strong>Verdadeiro.</strong> Esse é um resultado empírico central: a volatilidade é relativamente estável entre períodos (boa para projetar), enquanto o retorno médio varia bastante (estimador fraco).</p><p>Exemplo da Aula 8: comparando retornos diários do mercado brasileiro entre 2016-2020 e 2021-2025, alguém que tivesse usado parâmetros do primeiro período teria projetado bem a volatilidade, mas mal o prêmio de risco.</p>"
+  },
+  {
+    id: 3, topic: "historico", type: "mc", tag: "Aula 8 · §1.3",
+    stem: "Em uma distribuição normal padrão, qual é a probabilidade aproximada de uma observação cair ABAIXO de µ − 2σ?",
+    options: ["≈ 5,00%", "≈ 4,56%", "≈ 2,28%", "≈ 0,13%"],
+    correct: 2,
+    explanation: "<p><strong>≈ 2,28%.</strong> Pela regra 68-95-99,7, em uma distribuição normal a probabilidade de cair fora do intervalo µ ± 2σ é ≈ 4,56%. Como a distribuição é simétrica, metade disso (≈ 2,28%) está abaixo de µ − 2σ.</p><p>Isso é exatamente o que se compara, no Excel via <code>=CONT.SES( )</code>, com a frequência empírica observada para testar normalidade.</p>"
+  },
+
+  // ============= UTILIDADE =============
+  {
+    id: 4, topic: "utilidade", type: "mc", tag: "Aula 9 · §4",
+    stem: "Considere a função utilidade U = E(r) − ½·A·σ². O que significa um valor de A negativo (A < 0)?",
+    options: [
+      "O investidor é avesso ao risco",
+      "O investidor é neutro ao risco — não se importa com risco",
+      "O investidor é amante do risco — risco amplia sua utilidade",
+      "É impossível: A precisa ser sempre positivo"
+    ],
+    correct: 2,
+    explanation: "<p><strong>A < 0 ⇒ amante do risco</strong>. Como o termo é <code>−½·A·σ²</code>, com A negativo o sinal final do termo de risco vira positivo — a variância <em>aumenta</em> a utilidade. O investidor prefere ativos arriscados a equivalentes seguros de mesmo retorno esperado.</p><p>A = 0: neutro (decide só por E(r)). A > 0: avesso (caso padrão de mercado).</p>"
+  },
+  {
+    id: 5, topic: "utilidade", type: "num", tag: "Aula 9 · §4.3",
+    stem: "Uma carteira tem E(r) = 13% e σ = 20%. Para um investidor com A = 2, qual é a utilidade U? Responda em pontos percentuais (ex: 5.5).",
+    correct: 9, tolerance: 0.05,
+    unit: "%",
+    explanation: "<p>U = E(r) − ½·A·σ² = 0,13 − ½·2·(0,20)² = 0,13 − 0,04 = <strong>0,09 = 9%</strong></p><p>Atenção ao quadrado: σ² = 0,04, NÃO 0,2. Erros frequentes incluem usar σ ao invés de σ² ou esquecer o ½.</p>"
+  },
+  {
+    id: 6, topic: "utilidade", type: "vf", tag: "Aula 9 · §3",
+    stem: "Um investidor avesso ao risco SEMPRE recusa um jogo justo (com retorno esperado igual ao livre de risco e variância positiva).",
+    options: ["Verdadeiro", "Falso"],
+    correct: 0,
+    explanation: "<p><strong>Verdadeiro.</strong> Por definição, em um jogo justo o retorno esperado é igual ao do livre de risco (não há prêmio de risco), mas σ > 0. Então:</p><p><code>U(jogo) = E(r) − ½·A·σ² < E(r) = U(livre)</code> para qualquer A > 0.</p><p>O investidor avesso aceita <em>especular</em> (assumir risco em troca de prêmio), mas <em>nunca</em> apostar (assumir risco sem prêmio).</p>"
+  },
+  {
+    id: 7, topic: "utilidade", type: "mc", tag: "Aula 9",
+    stem: "Qual é a diferença ESSENCIAL entre especulação e aposta?",
+    options: [
+      "Especulação envolve ações; aposta envolve moedas e dados",
+      "A presença ou ausência de prêmio de risco",
+      "O tamanho do investimento",
+      "A liquidez do ativo"
+    ],
+    correct: 1,
+    explanation: "<p>A diferença <strong>essencial</strong> é o <strong>prêmio de risco</strong>. Especulação envolve elevar o risco em troca de um ganho proporcional esperado (há prêmio). Aposta é assumir risco sem compensação proporcional (sem prêmio).</p><p>Um investidor avesso ao risco aceita especular mas recusa apostar.</p>"
+  },
+
+  // ============= LAC & y* =============
+  {
+    id: 8, topic: "lac", type: "mc", tag: "Aula 9 · §6",
+    stem: "Um portfólio de risco P tem E(r<sub>P</sub>) = 14%, σ<sub>P</sub> = 20%, e a taxa livre de risco é r<sub>f</sub> = 6%. Uma carteira composta por 30% no livre de risco e 70% em P tem qual Índice de Sharpe?",
+    options: ["0,28", "0,30", "0,40", "0,56"],
+    correct: 2,
+    explanation: "<p>O Sharpe da carteira (livre + risco) é <strong>igual</strong> ao Sharpe do portfólio P, para qualquer y > 0. Ou seja, alocar mais ou menos em livre de risco não muda o Sharpe.</p><p><code>S = (E(r<sub>P</sub>) − r<sub>f</sub>) / σ<sub>P</sub> = (14% − 6%) / 20% = 0,40</code></p><p>Esse é um resultado fundamental — a inclinação da LAC depende SÓ de P, não do quanto você aloca em P.</p>"
+  },
+  {
+    id: 9, topic: "lac", type: "num", tag: "Aula 10 · §7",
+    stem: "Para r<sub>f</sub> = 8%, E(r<sub>P</sub>) = 18%, σ<sub>P</sub> = 30% e A = 3, calcule a alocação ótima y*. Responda em pontos percentuais (ex: 40.0).",
+    correct: 37.04, tolerance: 0.5,
+    unit: "%",
+    explanation: "<p><code>y* = (E(r<sub>P</sub>) − r<sub>f</sub>) / (A · σ²<sub>P</sub>) = (0,18 − 0,08) / (3 · 0,09) = 0,10 / 0,27 ≈ 0,3704 = 37,04%</code></p><p><strong>Erro comum:</strong> usar σ no denominador em vez de σ². σ<sub>P</sub> = 30% = 0,30, então σ²<sub>P</sub> = 0,09. Se você dividisse por σ<sub>P</sub> teria 11,1% (errado).</p>"
+  },
+  {
+    id: 10, topic: "lac", type: "vf", tag: "Aula 10",
+    stem: "Quanto MAIOR o coeficiente de aversão A, MAIOR a fração y* alocada no portfólio de risco.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 1,
+    explanation: "<p><strong>Falso.</strong> A relação é <em>inversa</em>: <code>y* = (E(r<sub>P</sub>) − r<sub>f</sub>) / (A · σ²<sub>P</sub>)</code>. Como A está no denominador, quanto maior A (mais avesso), MENOR y*.</p><p>Intuição: investidor mais avesso → mais 'penalizado' pelo risco → quer alocar menos em ativos arriscados. Isso é central — confunde-se muito.</p>"
+  },
+  {
+    id: 11, topic: "lac", type: "mc", tag: "Aula 9",
+    stem: "Quando y > 1, o que está acontecendo na carteira?",
+    options: [
+      "Há um erro de cálculo, pois pesos não podem exceder 100%",
+      "O investidor está short-selling o livre de risco e investindo mais que 100% em P (alavancagem)",
+      "A carteira é 100% livre de risco",
+      "O investidor não respeita as preferências do mercado"
+    ],
+    correct: 1,
+    explanation: "<p>y > 1 significa <strong>alavancagem</strong>: o investidor toma dinheiro emprestado à taxa livre de risco r<sub>f</sub> e investe além de 100% no portfólio de risco P.</p><p>Por exemplo: y = 1,5 ⇒ 150% em P, financiados em 100% pelo capital próprio + 50% emprestado a r<sub>f</sub>. Pode acontecer naturalmente quando A é baixo e o prêmio é alto: <code>y* = prêmio / (A·σ²)</code> pode dar > 1.</p>"
+  },
+
+  // ============= DIVERSIFICAÇÃO =============
+  {
+    id: 12, topic: "diversificacao", type: "mc", tag: "Aula 11 · §10",
+    stem: "Segundo a evidência empírica de Statman (1987), o desvio-padrão de uma carteira muito grande de ações americanas tende a se aproximar de qual valor?",
+    options: ["≈ 0% — diversificação total elimina risco", "≈ 5%", "≈ 19,2%", "≈ 49,2%"],
+    correct: 2,
+    explanation: "<p>≈ <strong>19,2%</strong>. Esse é o <em>piso</em> — o risco sistemático que NÃO pode ser eliminado por diversificação.</p><p>Os 49,2% são o DP médio de uma carteira com UMA única ação. À medida que ações são adicionadas, o risco específico cai rapidamente, mas o sistemático fica. Resultado: com ~20-30 ações já se elimina a maior parte do risco específico.</p>"
+  },
+  {
+    id: 13, topic: "diversificacao", type: "vf", tag: "Aula 11 · §10",
+    stem: "Risco sistemático e risco idiossincrático são sinônimos.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 1,
+    explanation: "<p><strong>Falso — são opostos.</strong></p><p><strong>Sistemático</strong> = risco de mercado, NÃO diversificável. Outros nomes: risco de mercado.</p><p><strong>Idiossincrático</strong> = específico, exclusivo, DIVERSIFICÁVEL. Outros nomes: risco específico, risco da empresa.</p><p>Cuidado: 'idiossincrático' é sinônimo de 'específico', NÃO de 'sistemático'.</p>"
+  },
+  {
+    id: 14, topic: "diversificacao", type: "mc", tag: "Aula 11",
+    stem: "Por que uma carteira composta por EMBRAER (exportadora) e LATAM (importadora) é uma boa ilustração de diversificação?",
+    options: [
+      "Porque ambas são empresas brasileiras",
+      "Porque o efeito do dólar nas duas é oposto, cancelando-se parcialmente na carteira",
+      "Porque ambas são do setor aéreo",
+      "Porque ambas têm o mesmo CNPJ"
+    ],
+    correct: 1,
+    explanation: "<p>O exemplo da Aula 11 mostra que dólar mais alto ajuda EMBRAER (receitas em USD valem mais em BRL) mas prejudica LATAM (custos em USD pesam mais). Em uma carteira 50/50, o impacto cambial é parcialmente cancelado.</p><p>Esse é exatamente o efeito da <strong>correlação baixa/negativa</strong>: ativos que reagem a fatores de forma oposta produzem σ<sub>P</sub> menor que a média ponderada das volatilidades.</p>"
+  },
+
+  // ============= 2 ATIVOS / MIN VAR =============
+  {
+    id: 15, topic: "dois-ativos", type: "num", tag: "Aula 11 · §11",
+    stem: "Dois ativos: σ<sub>1</sub> = 15%, σ<sub>2</sub> = 25%, ρ<sub>12</sub> = 0,2. Qual é a covariância Cov(r<sub>1</sub>, r<sub>2</sub>)?",
+    correct: 0.0075, tolerance: 0.0001,
+    hint: "Resposta em decimal — ex: 0.005",
+    explanation: "<p><code>Cov = ρ · σ<sub>1</sub> · σ<sub>2</sub> = 0,2 · 0,15 · 0,25 = 0,0075</code></p><p>Em pontos percentuais isso é 0,75%. O sinal segue o sinal de ρ — aqui positivo. Erro frequente: confundir 0,75% com 7,5% (erro de fator 10).</p>"
+  },
+  {
+    id: 16, topic: "dois-ativos", type: "mc", tag: "Aula 11 · §11.3",
+    stem: "Em um portfólio com dois ativos de risco, em qual cenário NÃO há benefício de diversificação?",
+    options: [
+      "ρ = 0",
+      "ρ = +1",
+      "ρ = −1",
+      "ρ = 0,5"
+    ],
+    correct: 1,
+    explanation: "<p><strong>ρ = +1</strong> — ativos perfeitamente correlacionados. A volatilidade do portfólio vira a média ponderada das volatilidades individuais. Não há ganho.</p><p>Para qualquer ρ < 1 já há benefício, mesmo que pequeno. ρ = −1 é o caso extremo oposto: dá para zerar σ<sub>P</sub> com pesos adequados.</p>"
+  },
+  {
+    id: 17, topic: "dois-ativos", type: "num", tag: "Aula 11 · §12",
+    stem: "Para σ<sub>D</sub> = 12%, σ<sub>E</sub> = 20%, ρ = 0,3, qual é o peso w<sub>D</sub> de mínima variância? Responda em pontos percentuais (ex: 50.0).",
+    correct: 82, tolerance: 1,
+    unit: "%",
+    explanation: "<p>Cov = 0,3 · 0,12 · 0,20 = 0,0072</p><p>w<sub>D</sub><sup>min</sup> = (σ²<sub>E</sub> − Cov) / (σ²<sub>D</sub> + σ²<sub>E</sub> − 2·Cov)<br>= (0,04 − 0,0072) / (0,0144 + 0,04 − 0,0144)<br>= 0,0328 / 0,04 = <strong>0,82 = 82%</strong></p><p>Note que o portfólio de mínima variância aloca quase tudo no ativo de menor σ — mas não 100%, justamente porque a covariância < σ²<sub>D</sub> permite usar um pouco do outro ativo para 'cancelar' parte do risco.</p>"
+  },
+  {
+    id: 18, topic: "dois-ativos", type: "vf", tag: "Aula 11",
+    stem: "Em uma carteira de dois ativos, a volatilidade σ<sub>P</sub> é sempre igual à média ponderada de σ<sub>D</sub> e σ<sub>E</sub>.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 1,
+    explanation: "<p><strong>Falso.</strong> A volatilidade <em>nunca</em> é simples média ponderada — exceto no caso degenerado ρ = +1.</p><p>A fórmula correta é: <code>σ<sub>P</sub> = √[ w²<sub>D</sub>·σ²<sub>D</sub> + w²<sub>E</sub>·σ²<sub>E</sub> + 2·w<sub>D</sub>·w<sub>E</sub>·Cov ]</code>. O termo da covariância é exatamente o que faz σ<sub>P</sub> ser MENOR que a média ponderada quando ρ < 1 — é o efeito da diversificação.</p>"
+  },
+  {
+    id: 19, topic: "dois-ativos", type: "num", tag: "Atividade Ex. 3",
+    stem: "Dois ativos: E(r<sub>1</sub>)=10%, σ<sub>1</sub>=15%; E(r<sub>2</sub>)=18%, σ<sub>2</sub>=25%; ρ=0,2. Para uma alocação 60% em 1 e 40% em 2, qual o E(r<sub>P</sub>)? Em %, ex: 12.0",
+    correct: 13.2, tolerance: 0.1,
+    unit: "%",
+    explanation: "<p><code>E(r<sub>P</sub>) = 0,6 · 10% + 0,4 · 18% = 6% + 7,2% = 13,2%</code></p><p>Para retorno esperado, é simplesmente média ponderada — diferente da volatilidade.</p>"
+  },
+  {
+    id: 20, topic: "dois-ativos", type: "num", tag: "Atividade Ex. 3",
+    stem: "Mesmos parâmetros do Ex. anterior (σ<sub>1</sub>=15%, σ<sub>2</sub>=25%, ρ=0,2, w<sub>1</sub>=0,6). Qual a volatilidade σ<sub>P</sub>? Em %, ex: 14.0",
+    correct: 14.73, tolerance: 0.2,
+    unit: "%",
+    explanation: "<p>Cov = 0,2 · 0,15 · 0,25 = 0,0075</p><p><code>σ²<sub>P</sub> = 0,36 · 0,0225 + 0,16 · 0,0625 + 2·0,6·0,4·0,0075</code><br><code>= 0,0081 + 0,01 + 0,0036 = 0,0217</code></p><p><code>σ<sub>P</sub> = √0,0217 ≈ 14,73%</code></p><p>A média ponderada das vols seria 0,6·15% + 0,4·25% = 19% — bem maior que 14,73%. A diferença vem da diversificação (ρ < 1).</p>"
+  },
+  {
+    id: 21, topic: "dois-ativos", type: "mc", tag: "Aula 11 · §13",
+    stem: "Para ρ = −1, σ<sub>D</sub> = 12% e σ<sub>E</sub> = 20%, quais pesos zeram completamente σ<sub>P</sub>?",
+    options: [
+      "w<sub>D</sub> = 50%, w<sub>E</sub> = 50%",
+      "w<sub>D</sub> = 12/32 ≈ 37,5%, w<sub>E</sub> = 20/32 ≈ 62,5%",
+      "w<sub>D</sub> = 20/32 ≈ 62,5%, w<sub>E</sub> = 12/32 ≈ 37,5%",
+      "Não é possível zerar σ<sub>P</sub> com ativos com risco"
+    ],
+    correct: 2,
+    explanation: "<p>Para ρ = −1, a fórmula é <code>w<sub>D</sub> = σ<sub>E</sub>/(σ<sub>D</sub>+σ<sub>E</sub>)</code> e <code>w<sub>E</sub> = σ<sub>D</sub>/(σ<sub>D</sub>+σ<sub>E</sub>)</code>. Note: o peso em D usa σ<sub>E</sub> no numerador (e vice-versa).</p><p>w<sub>D</sub> = 20/(12+20) = 20/32 ≈ 62,5%, w<sub>E</sub> = 12/32 ≈ 37,5%. Intuição: o ativo de maior volatilidade recebe MENOR peso, para que os movimentos opostos se cancelem.</p>"
+  },
+
+  // ============= PORTFÓLIO ÓTIMO =============
+  {
+    id: 22, topic: "otimo", type: "vf", tag: "Aula 12 · §14",
+    stem: "O portfólio de risco ótimo (P) é o que tem menor variância entre todos os portfólios da fronteira eficiente.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 1,
+    explanation: "<p><strong>Falso.</strong> O portfólio de risco ótimo (P) é o de <strong>maior Índice de Sharpe</strong>, NÃO o de menor variância.</p><p>O portfólio de mínima variância (G) tem a menor σ, mas seu Sharpe é tipicamente menor que o de P. Quando combinado com o livre de risco, P gera a LAC mais inclinada — preferida por todo investidor avesso.</p><p>Esse é o <strong>princípio da separação de Tobin</strong>: todos escolhem o mesmo P, e variam só em y*.</p>"
+  },
+  {
+    id: 23, topic: "otimo", type: "num", tag: "Atividade Aula 12 (a)",
+    stem: "Considere D: E(r)=15%, σ=20%; E: E(r)=25%, σ=40%; r<sub>f</sub>=5%; Cov(r<sub>D</sub>,r<sub>E</sub>)=0,04. Qual o peso w<sub>D</sub>* do portfólio ótimo (maior Sharpe)? Em %, ex: 50.0",
+    correct: 66.67, tolerance: 0.5,
+    unit: "%",
+    explanation: "<p>Prêmios: E(R<sub>D</sub>) = 10%, E(R<sub>E</sub>) = 20%.</p><p><code>w<sub>D</sub>* = [E(R<sub>D</sub>)·σ²<sub>E</sub> − E(R<sub>E</sub>)·Cov] / [E(R<sub>D</sub>)·σ²<sub>E</sub> + E(R<sub>E</sub>)·σ²<sub>D</sub> − (E(R<sub>D</sub>)+E(R<sub>E</sub>))·Cov]</code></p><p>Numerador: 0,10·0,16 − 0,20·0,04 = 0,016 − 0,008 = 0,008</p><p>Denominador: 0,10·0,16 + 0,20·0,04 − 0,30·0,04 = 0,016 + 0,008 − 0,012 = 0,012</p><p><code>w<sub>D</sub>* = 0,008 / 0,012 ≈ 66,67%</code></p>"
+  },
+  {
+    id: 24, topic: "otimo", type: "num", tag: "Atividade Aula 12 (a)",
+    stem: "Mesmos dados. Qual o E(r<sub>P</sub>) do portfólio ótimo (com w<sub>D</sub>* = 2/3, w<sub>E</sub>* = 1/3)? Em %, ex: 18.0",
+    correct: 18.33, tolerance: 0.2,
+    unit: "%",
+    explanation: "<p><code>E(r<sub>P</sub>) = (2/3)·15% + (1/3)·25% = 10% + 8,33% ≈ 18,33%</code></p>"
+  },
+  {
+    id: 25, topic: "otimo", type: "num", tag: "Atividade Aula 12 (b)",
+    stem: "Mesmos dados (D: σ=20%, E: σ=40%, Cov=0,04, w<sub>D</sub>*=2/3). Qual a volatilidade σ<sub>P</sub>? Em %, ex: 25.0",
+    correct: 23.09, tolerance: 0.5,
+    unit: "%",
+    explanation: "<p><code>σ²<sub>P</sub> = (2/3)²·0,04 + (1/3)²·0,16 + 2·(2/3)·(1/3)·0,04</code><br><code>= 0,4444·0,04 + 0,1111·0,16 + 0,4444·0,04</code><br><code>= 0,01778 + 0,01778 + 0,01778 = 0,0533</code></p><p><code>σ<sub>P</sub> = √0,0533 ≈ 23,09%</code></p>"
+  },
+  {
+    id: 26, topic: "otimo", type: "num", tag: "Atividade Aula 12 (c)",
+    stem: "Continuando o problema (E(r<sub>P</sub>)≈18,33%, σ<sub>P</sub>≈23,09%, r<sub>f</sub>=5%). Qual a inclinação da LAC (Sharpe)?",
+    correct: 0.5774, tolerance: 0.02,
+    explanation: "<p><code>S = (E(r<sub>P</sub>) − r<sub>f</sub>) / σ<sub>P</sub> = (18,33% − 5%) / 23,09% = 13,33% / 23,09% ≈ 0,5774</code></p><p>Esse é o Sharpe MÁXIMO atingível combinando D e E nesse mercado. Qualquer outra combinação de D e E (e qualquer mistura desse P com r<sub>f</sub>) terá Sharpe ≤ 0,577.</p>"
+  },
+  {
+    id: 27, topic: "otimo", type: "num", tag: "Atividade Aula 12 (d-f)",
+    stem: "Investidor com A=5 e patrimônio R$12.000.000. Para os mesmos dados (E(r<sub>P</sub>)≈18,33%, σ²<sub>P</sub>≈0,0533, r<sub>f</sub>=5%), quanto investirá em LETRAS DO TESOURO? Em R$ (sem pontos/vírgulas, ex: 5000000)",
+    correct: 6000000, tolerance: 100000,
+    unit: "R$",
+    explanation: "<p><code>y* = (0,1833 − 0,05) / (5 · 0,0533) = 0,1333 / 0,2667 ≈ 0,50 = 50%</code></p><p>Então 50% vai para o portfólio de risco P, e <strong>50% vai para Letras do Tesouro</strong>:</p><p><code>R$ 12.000.000 · 0,50 = R$ 6.000.000</code></p><p>Dos R$ 6M em P: D = (2/3)·6M = R$4M; E = (1/3)·6M = R$2M.</p>"
+  },
+  {
+    id: 28, topic: "otimo", type: "vf", tag: "Aula 12",
+    stem: "Quanto MAIS inclinada a LAC, MELHOR para qualquer investidor avesso ao risco.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 0,
+    explanation: "<p><strong>Verdadeiro.</strong> A inclinação da LAC é o Sharpe — ou seja, o trade-off entre retorno excedente e risco. Quanto mais inclinada, maior o retorno por unidade de risco assumido.</p><p>Para qualquer A > 0, uma LAC mais inclinada permite atingir uma curva de indiferença mais alta — ou seja, maior utilidade ótima. Por isso o investidor quer escolher P que maximiza Sharpe.</p>"
+  },
+
+  // ============= N ATIVOS =============
+  {
+    id: 29, topic: "n-ativos", type: "mc", tag: "Aula 13 · §15",
+    stem: "Ao otimizar o portfólio de risco com N ativos via Solver, qual é a função objetivo correta?",
+    options: [
+      "Minimizar a variância σ²<sub>P</sub>",
+      "Maximizar o retorno esperado E(r<sub>P</sub>)",
+      "Maximizar o Índice de Sharpe S<sub>P</sub>, sujeito a Σw<sub>i</sub> = 1",
+      "Minimizar o número de ativos da carteira"
+    ],
+    correct: 2,
+    explanation: "<p>O objetivo é <strong>maximizar S<sub>P</sub></strong> sujeito a Σw<sub>i</sub> = 1.</p><p>Maximizar Sharpe → maior inclinação da LAC → melhor para qualquer investidor avesso. Por isso o portfólio ótimo P é definido como o de maior Sharpe possível na fronteira eficiente.</p><p>Minimizar variância dá outro ponto (G — carteira global de mínima variância), que é diferente de P.</p>"
+  },
+  {
+    id: 30, topic: "n-ativos", type: "vf", tag: "Aula 13",
+    stem: "No Solver, para PERMITIR pesos negativos (posições short) na otimização do portfólio, deve-se DESMARCAR a opção 'Tornar variáveis irrestritas não negativas'.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 0,
+    explanation: "<p><strong>Verdadeiro.</strong> Por padrão o Solver assume que todas as variáveis livres são ≥ 0. Para permitir w<sub>i</sub> < 0 (vendas a descoberto / short), <em>desmarcar</em> essa opção é essencial.</p><p>No exemplo da Aula 13 com VALE3, PETR4 e ITUB4, o portfólio ótimo SEM restrição teve w<sub>ITUB</sub> = −113%. Com restrição (sem shorts), o Sharpe ótimo cai porque a fronteira fica mais limitada.</p>"
+  },
+  {
+    id: 31, topic: "n-ativos", type: "mc", tag: "Aula 13",
+    stem: "No Solver, qual método de solução é MAIS APROPRIADO para o problema de maximização do Sharpe com N ativos?",
+    options: [
+      "LP Simplex (Linear Programming)",
+      "GRG Não Linear",
+      "Evolutionary",
+      "Tanto faz, todos dão o mesmo resultado"
+    ],
+    correct: 1,
+    explanation: "<p><strong>GRG Não Linear.</strong> O Sharpe é uma função não-linear dos pesos (numerador linear, denominador raiz de uma forma quadrática). Simplex (linear) não funciona; Evolutionary é para problemas não-suaves (como funções com saltos).</p><p>O Excel/Solver tem um botão para escolher esse método na janela 'Parâmetros do Solver'.</p>"
+  },
+  {
+    id: 32, topic: "n-ativos", type: "vf", tag: "Aula 13",
+    stem: "Pelo princípio da separação (Tobin), todos os investidores avessos devem manter EXATAMENTE o MESMO portfólio de risco P, variando apenas a fração y* alocada nele.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 0,
+    explanation: "<p><strong>Verdadeiro.</strong> Esse é um dos resultados mais elegantes da teoria de portfólios.</p><p>O P ótimo é o de maior Sharpe — definido APENAS pelos parâmetros do mercado (retornos, vols, covariâncias), não pelas preferências individuais. Cada investidor escolhe seu próprio y* = prêmio/(A·σ²<sub>P</sub>) baseado na sua aversão A. Mas a composição interna de P é a mesma para todos.</p><p>Implicação prática: a etapa de seleção do portfólio de risco é separável da etapa de alocação de capital.</p>"
+  },
+
+  // ============= COMBINADAS / MISC =============
+  {
+    id: 33, topic: "lac", type: "num", tag: "Aula 10 · §7.4",
+    stem: "Para r<sub>f</sub>=10%, E(r<sub>P</sub>)=15%, σ<sub>P</sub>=25%, A=2: alocação ótima y* = 40%. Qual a UTILIDADE ótima U? Em %, ex: 11.0",
+    correct: 11, tolerance: 0.2,
+    unit: "%",
+    explanation: "<p>σ<sub>C</sub>(y*) = 0,40·25% = 10%</p><p>E(r<sub>C</sub>) = 10% + 0,40·5% = 12%</p><p>U = E(r<sub>C</sub>) − ½·A·σ²<sub>C</sub> = 12% − ½·2·(10%)² = 12% − 1% = <strong>11%</strong></p><p>Note que (10%)² = 0,01 = 1% — fácil errar a casa decimal aqui.</p>"
+  },
+  {
+    id: 34, topic: "utilidade", type: "mc", tag: "Aula 8/9",
+    stem: "O Índice de Sharpe é definido como:",
+    options: [
+      "S = E(r) / σ",
+      "S = (E(r) − r<sub>f</sub>) · σ",
+      "S = (E(r) − r<sub>f</sub>) / σ",
+      "S = σ / (E(r) − r<sub>f</sub>)"
+    ],
+    correct: 2,
+    explanation: "<p><strong>S = (E(r) − r<sub>f</sub>) / σ</strong> — prêmio de risco dividido pela volatilidade. É medida de retorno excedente por unidade de risco.</p><p>Geometricamente, é a inclinação da reta que sai de (0, r<sub>f</sub>) e passa por (σ, E(r)) no plano risco-retorno.</p>"
+  },
+  {
+    id: 35, topic: "diversificacao", type: "vf", tag: "Aula 11 · §13",
+    stem: "Conforme ρ entre dois ativos diminui (de +1 para −1), a fronteira eficiente fica MAIS curvada para a esquerda no plano (σ, E[r]) — ou seja, mais ganho de diversificação.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 0,
+    explanation: "<p><strong>Verdadeiro.</strong> Para ρ = +1, a fronteira é uma linha reta entre os dois ativos. Para qualquer ρ < 1, vira uma curva côncava à esquerda — quanto menor ρ, mais à esquerda (menor σ para o mesmo E[r]).</p><p>No limite ρ = −1, a fronteira forma um 'V' que toca o eixo σ = 0 (existe uma combinação que zera o risco).</p>"
+  },
+  {
+    id: 36, topic: "lac", type: "num", tag: "Aula 9 · §5.2",
+    stem: "Carteira: 75% em P (E(r<sub>P</sub>)=14%, σ<sub>P</sub>=20%) e 25% em r<sub>f</sub>=5%. Qual o E(r<sub>C</sub>)? Em %, ex: 10.0",
+    correct: 11.75, tolerance: 0.1,
+    unit: "%",
+    explanation: "<p><code>E(r<sub>C</sub>) = r<sub>f</sub> + y · (E(r<sub>P</sub>) − r<sub>f</sub>) = 5% + 0,75 · (14% − 5%) = 5% + 6,75% = 11,75%</code></p><p>Equivalente: E(r<sub>C</sub>) = 0,75·14% + 0,25·5% = 10,5% + 1,25% = 11,75%. As duas formas dão o mesmo resultado.</p>"
+  },
+  {
+    id: 37, topic: "lac", type: "num", tag: "Aula 9 · §5.3",
+    stem: "Mesma carteira (y=75% em P, σ<sub>P</sub>=20%). Qual a volatilidade σ<sub>C</sub>? Em %, ex: 15.0",
+    correct: 15, tolerance: 0.05,
+    unit: "%",
+    explanation: "<p><code>σ<sub>C</sub> = y · σ<sub>P</sub> = 0,75 · 20% = 15%</code></p><p>O ativo livre de risco tem σ = 0, então só o termo do portfólio entra. Volatilidade da carteira (livre+risco) é simplesmente proporcional a y.</p>"
+  },
+  {
+    id: 38, topic: "diversificacao", type: "mc", tag: "Aula 11",
+    stem: "Aproximadamente quantas ações bem escolhidas são suficientes para eliminar a maior parte do risco específico?",
+    options: ["3-5", "20-30", "100-150", "500+"],
+    correct: 1,
+    explanation: "<p><strong>20-30 ações</strong>. A curva do risco em função do número de ativos cai rapidamente nas primeiras adições e converge ao risco sistemático. Com ~20-30 já se elimina a maior parte do componente diversificável.</p><p>Indo para 100, 500 ações o ganho marginal é mínimo — o que sobra é o risco de mercado, indiferente ao número de ações.</p>"
+  },
+  {
+    id: 39, topic: "historico", type: "vf", tag: "Aula 8",
+    stem: "O teste de Jarque-Bera testa se uma série segue distribuição normal, baseado em assimetria e curtose.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 0,
+    explanation: "<p><strong>Verdadeiro.</strong> A estatística JB = (n/6)·[α² + (κ²/4)] — onde α é a assimetria e κ o excesso de curtose — segue χ² com 2 graus de liberdade sob H<sub>0</sub> (normalidade). Valores altos rejeitam normalidade.</p><p>Distribuição normal tem α = 0 e κ = 0 (curtose-3 = 0). Desvios desses valores aumentam JB.</p>"
+  },
+  {
+    id: 40, topic: "otimo", type: "mc", tag: "Aula 12 · §14",
+    stem: "Por que o portfólio P (de maior Sharpe) é universalmente preferível ao portfólio de mínima variância G para construção de carteira com livre de risco?",
+    options: [
+      "P sempre tem menor risco que G",
+      "P sempre tem maior retorno absoluto que G",
+      "P gera a LAC mais inclinada — qualquer investidor avesso atinge maior utilidade combinando P com r<sub>f</sub>",
+      "G só existe na teoria, não é implementável"
+    ],
+    correct: 2,
+    explanation: "<p>P maximiza Sharpe — logo gera a LAC mais inclinada. Para qualquer A > 0, uma LAC mais inclinada toca uma curva de indiferença mais alta → maior utilidade ótima.</p><p>G tem o menor σ entre os portfólios da fronteira, mas seu Sharpe é tipicamente menor. Combinar G com r<sub>f</sub> dá uma LAC menos inclinada que combinar P com r<sub>f</sub>.</p><p>Por isso a teoria diz: TODO investidor (qualquer A) deve manter o mesmo P, variando só y*.</p>"
+  },
+  {
+    id: 41, topic: "dois-ativos", type: "num", tag: "Atividade Ex. 4",
+    stem: "Dois ativos com σ<sub>1</sub>=15%, σ<sub>2</sub>=25%, ρ=0,2. Qual o peso w<sub>1</sub> de mínima variância? Em %, ex: 50.0",
+    correct: 78.57, tolerance: 1,
+    unit: "%",
+    explanation: "<p>Cov = 0,2·0,15·0,25 = 0,0075</p><p><code>w<sub>1</sub><sup>min</sup> = (σ²<sub>2</sub> − Cov) / (σ²<sub>1</sub> + σ²<sub>2</sub> − 2·Cov)</code><br>= (0,0625 − 0,0075) / (0,0225 + 0,0625 − 0,015)<br>= 0,055 / 0,07 ≈ <strong>78,57%</strong></p>"
+  },
+  {
+    id: 42, topic: "n-ativos", type: "vf", tag: "Aula 13",
+    stem: "A restrição Σw<sub>i</sub> = 1 no Solver impede que apareçam pesos negativos.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 1,
+    explanation: "<p><strong>Falso.</strong> Σw<sub>i</sub> = 1 só garante que os pesos somam 100% (a carteira está totalmente investida). Pesos individuais podem ser negativos (short) desde que outros sejam > 1 para compensar.</p><p>Exemplo da Aula 13: w<sub>VALE</sub>=64,8%, w<sub>PETR</sub>=148,2%, w<sub>ITUB</sub>=−113%. Soma: 64,8 + 148,2 − 113 = 100% ✓</p><p>Para barrar shorts, é necessária restrição extra: w<sub>i</sub> ≥ 0 para todo i (ou marcar 'tornar variáveis não negativas').</p>"
+  },
+  {
+    id: 43, topic: "utilidade", type: "num", tag: "Ex Integrado 1",
+    stem: "Investidor com A = 4, r<sub>f</sub> = 5%, P com E(r<sub>P</sub>) = 12% e σ<sub>P</sub> = 20%. Qual y*? Em %, ex: 50.0",
+    correct: 43.75, tolerance: 0.5,
+    unit: "%",
+    explanation: "<p><code>y* = (0,12 − 0,05) / (4 · 0,04) = 0,07 / 0,16 = 0,4375 = 43,75%</code></p><p>Para um investidor mais avesso (A=4), o y* é menor. Compare com Maria, A=2: y* = 0,07 / 0,08 = 87,5% (o dobro).</p>"
+  },
+  {
+    id: 44, topic: "diversificacao", type: "mc", tag: "Aula 11",
+    stem: "Que tipo de fator afeta os retornos de TODAS as ações simultaneamente, gerando risco sistemático?",
+    options: [
+      "Sucesso de produtos da empresa X",
+      "Mudança de CEO da empresa Y",
+      "Inflação, juros, ciclo econômico, política monetária",
+      "Greve em uma fábrica específica"
+    ],
+    correct: 2,
+    explanation: "<p>Fatores <strong>macroeconômicos</strong> — ciclos, inflação, juros, câmbio, política monetária — afetam o mercado como um todo. Geram o risco sistemático (não-diversificável).</p><p>As outras opções são fatores específicos da empresa, que geram risco idiossincrático (diversificável).</p>"
+  },
+  {
+    id: 45, topic: "lac", type: "vf", tag: "Aula 9 · §6",
+    stem: "Adicionar mais ativo livre de risco a uma carteira (reduzindo y) DIMINUI o Sharpe da carteira final.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 1,
+    explanation: "<p><strong>Falso.</strong> Esse é um resultado contra-intuitivo mas central: <strong>o Sharpe da carteira é igual ao Sharpe de P, INDEPENDENTE de y</strong> (para y > 0).</p><p>Adicionar livre de risco reduz o prêmio E(r<sub>C</sub>) − r<sub>f</sub> = y·(E(r<sub>P</sub>) − r<sub>f</sub>) e a volatilidade σ<sub>C</sub> = y·σ<sub>P</sub> EXATAMENTE na mesma proporção (y). A razão (Sharpe) é constante.</p><p>Isso justifica por que escolher P é separado de escolher quanto risco assumir.</p>"
+  }
+];
+
+/* ============================================
+   EXAM QUESTIONS — 15 questions, balanced
+   ============================================ */
+const EXAM_QUESTIONS = [
+  // 5 conceituais MC
+  {
+    id: "E1", type: "mc", tag: "P3 · Conceitual",
+    stem: "Sobre o coeficiente de aversão ao risco A na função utilidade U = E(r) − ½·A·σ², é CORRETO afirmar:",
+    options: [
+      "A > 0 indica investidor amante do risco",
+      "Quanto maior A, maior a fração ótima y* alocada no portfólio de risco",
+      "A < 0 indica investidor amante do risco; A = 0 indica neutralidade",
+      "A = 0 implica indiferença total entre quaisquer carteiras"
+    ],
+    correct: 2,
+    explanation: "A < 0 → amante do risco (variância amplia U). A = 0 → neutro (decide só por E(r), não 'indiferente entre quaisquer carteiras'). A > 0 → avesso. y* é INVERSO a A."
+  },
+  {
+    id: "E2", type: "mc", tag: "P3 · LAC",
+    stem: "A inclinação da Linha de Alocação de Capital (LAC) é igual a:",
+    options: [
+      "Retorno esperado do portfólio E(r<sub>P</sub>)",
+      "Volatilidade do portfólio σ<sub>P</sub>",
+      "Índice de Sharpe do portfólio: (E(r<sub>P</sub>) − r<sub>f</sub>) / σ<sub>P</sub>",
+      "Coeficiente de aversão ao risco A"
+    ],
+    correct: 2,
+    explanation: "A LAC é E(r<sub>C</sub>) = r<sub>f</sub> + S·σ<sub>C</sub>, onde S é o Sharpe. Inclinação = Sharpe = prêmio de risco por unidade de volatilidade."
+  },
+  {
+    id: "E3", type: "vf", tag: "P3 · Diversificação",
+    stem: "O risco sistemático é também conhecido como risco de mercado e NÃO pode ser eliminado por diversificação.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 0,
+    explanation: "Verdadeiro. Sistemático = mercado = não-diversificável. Específico = idiossincrático = diversificável. Statman (1987): risco residual após diversificação total ≈ 19,2%."
+  },
+  {
+    id: "E4", type: "mc", tag: "P3 · 2 Ativos",
+    stem: "Em qual cenário a fórmula σ<sub>P</sub> = w<sub>D</sub>·σ<sub>D</sub> + w<sub>E</sub>·σ<sub>E</sub> (média ponderada simples) é válida?",
+    options: [
+      "Sempre, é a fórmula geral",
+      "Apenas quando ρ<sub>DE</sub> = 0",
+      "Apenas quando ρ<sub>DE</sub> = +1",
+      "Apenas quando ρ<sub>DE</sub> = −1"
+    ],
+    correct: 2,
+    explanation: "Apenas para ρ = +1 (correlação perfeita positiva), a volatilidade do portfólio é a média ponderada simples. Para qualquer ρ < 1 há ganho de diversificação e σ<sub>P</sub> < média ponderada."
+  },
+  {
+    id: "E5", type: "vf", tag: "P3 · Otimização",
+    stem: "Pelo princípio da separação, o portfólio de risco ótimo P é o mesmo para todos os investidores avessos, independentemente de seus coeficientes A.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 0,
+    explanation: "Verdadeiro. P é o de maior Sharpe — definido pelos parâmetros do mercado, não pelas preferências. O que varia entre investidores é y*, não a composição de P."
+  },
+
+  // 5 numéricas - LAC e utilidade
+  {
+    id: "E6", type: "num", tag: "P3 · y*",
+    stem: "Investidor com A = 3, mercado com r<sub>f</sub> = 6%, E(r<sub>P</sub>) = 16%, σ<sub>P</sub> = 25%. Qual a alocação ótima y* (em %)?",
+    correct: 53.33, tolerance: 1,
+    unit: "%",
+    explanation: "y* = (0,16 − 0,06) / (3 · 0,0625) = 0,10 / 0,1875 ≈ 53,33%."
+  },
+  {
+    id: "E7", type: "num", tag: "P3 · Utilidade",
+    stem: "Carteira com E(r<sub>C</sub>) = 14% e σ<sub>C</sub> = 12%. Investidor com A = 4. Qual a utilidade U? (em %)",
+    correct: 11.12, tolerance: 0.1,
+    unit: "%",
+    explanation: "U = 14% − ½·4·(12%)² = 14% − 2·0,0144 = 14% − 2,88% = 11,12%."
+  },
+  {
+    id: "E8", type: "num", tag: "P3 · 2 Ativos",
+    stem: "σ<sub>D</sub> = 10%, σ<sub>E</sub> = 30%, ρ<sub>DE</sub> = −0,4. Qual a covariância Cov(r<sub>D</sub>, r<sub>E</sub>)? (em decimal)",
+    correct: -0.012, tolerance: 0.0005,
+    explanation: "Cov = ρ · σ<sub>D</sub> · σ<sub>E</sub> = (−0,4) · 0,10 · 0,30 = −0,012. Negativa por causa de ρ < 0."
+  },
+  {
+    id: "E9", type: "num", tag: "P3 · Min Var",
+    stem: "Para σ<sub>D</sub> = 10%, σ<sub>E</sub> = 20%, Cov = 0. Qual o peso w<sub>D</sub> de mínima variância? (em %)",
+    correct: 80, tolerance: 1,
+    unit: "%",
+    explanation: "w<sub>D</sub><sup>min</sup> = (σ²<sub>E</sub> − Cov) / (σ²<sub>D</sub> + σ²<sub>E</sub> − 2·Cov) = 0,04 / (0,01 + 0,04) = 0,04/0,05 = 80%."
+  },
+  {
+    id: "E10", type: "num", tag: "P3 · LAC",
+    stem: "P com E(r<sub>P</sub>) = 18%, σ<sub>P</sub> = 28%, r<sub>f</sub> = 7%. Qual o Sharpe (com 4 casas decimais)?",
+    correct: 0.3929, tolerance: 0.005,
+    explanation: "S = (18% − 7%) / 28% = 11% / 28% ≈ 0,3929."
+  },
+
+  // 5 mistas mais avançadas
+  {
+    id: "E11", type: "mc", tag: "P3 · Aplicação",
+    stem: "Carteira 60% em P (Sharpe = 0,30) e 40% em r<sub>f</sub>. Qual o Sharpe da carteira final?",
+    options: ["0,12", "0,18", "0,30", "0,42"],
+    correct: 2,
+    explanation: "0,30. O Sharpe da carteira combinada (livre+risco) é igual ao Sharpe do portfólio de risco P, para qualquer y > 0. A inclinação da LAC é constante."
+  },
+  {
+    id: "E12", type: "num", tag: "P3 · Portfólio Ótimo",
+    stem: "D: E(r)=10%, σ=15%; E: E(r)=18%, σ=25%; r<sub>f</sub>=4%; Cov(D,E)=0,015. Qual w<sub>D</sub>* (peso ótimo do max Sharpe)? Em %",
+    correct: 42.31, tolerance: 1.5,
+    unit: "%",
+    explanation: "E(R<sub>D</sub>)=6%, E(R<sub>E</sub>)=14%. Num = 0,06·0,0625 − 0,14·0,015 = 0,00375 − 0,0021 = 0,00165. Den = 0,06·0,0625 + 0,14·0,0225 − 0,20·0,015 = 0,00375 + 0,00315 − 0,003 = 0,0039. w<sub>D</sub>* = 0,00165/0,0039 ≈ <strong>42,31%</strong>."
+  },
+  {
+    id: "E13", type: "vf", tag: "P3 · Conceitual",
+    stem: "A função utilidade quadrática U = E(r) − ½·A·σ² implica que o investidor se importa apenas com média e variância dos retornos, ignorando momentos superiores como assimetria e curtose.",
+    options: ["Verdadeiro", "Falso"],
+    correct: 0,
+    explanation: "Verdadeiro. Essa é uma limitação importante: a utilidade quadrática (ou retornos normais) usa só os 2 primeiros momentos. Em mercados com fat tails ou assimetria significativa, U pode subestimar/superestimar utilidade real. É por isso que se discute normalidade dos retornos."
+  },
+  {
+    id: "E14", type: "mc", tag: "P3 · Solver",
+    stem: "Ao usar o Solver para otimizar Sharpe com N ativos, qual configuração permite que apareçam posições short (w<sub>i</sub> < 0)?",
+    options: [
+      "Manter 'Tornar variáveis irrestritas não negativas' marcado",
+      "Desmarcar 'Tornar variáveis irrestritas não negativas'",
+      "Mudar método de solução para LP Simplex",
+      "Adicionar restrição w<sub>i</sub> ≤ 0"
+    ],
+    correct: 1,
+    explanation: "Desmarcar a opção 'Tornar variáveis irrestritas não negativas' libera os pesos para assumir valores negativos. Sem essa configuração, todos os w<sub>i</sub> ficam ≥ 0 por padrão."
+  },
+  {
+    id: "E15", type: "num", tag: "P3 · Caso Completo",
+    stem: "Para o portfólio ótimo com E(r<sub>P</sub>) = 12%, σ<sub>P</sub> = 18%, r<sub>f</sub> = 4%, e investidor com A = 3, calcule o RETORNO ESPERADO da carteira final E(r<sub>C</sub>) na alocação ótima. Em %",
+    correct: 10.58, tolerance: 0.3,
+    unit: "%",
+    explanation: "Passo 1: y* = (0,12 − 0,04) / (3 · 0,18²) = 0,08/0,0972 ≈ 0,8230 = 82,30%. Passo 2: E(r<sub>C</sub>) = r<sub>f</sub> + y*·(E(r<sub>P</sub>) − r<sub>f</sub>) = 4% + 0,823·8% = 4% + 6,58% ≈ <strong>10,58%</strong>. Note que y* > 0 mas < 1, então a carteira fica entre r<sub>f</sub> e P (sem alavancagem)."
+  }
+];
+
+/* ============================================
+   APP STATE
+   ============================================ */
+const STORAGE_KEY = 'fin1_p3_dashboard_v1';
+
+let appState = {
+  quizAnswers: {},   // {qid: {selected, correct, attempts}}
+  quizFilters: {topic: 'all', type: 'all'},
+  examInProgress: false,
+  examAnswers: {},
+  examStartTime: null,
+  examDuration: 60 * 60 * 1000  // 60 minutes
+};
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      appState = Object.assign(appState, parsed);
+    }
+  }catch(e){}
+}
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+  }catch(e){}
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+document.querySelectorAll('.tabs .tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tabs .tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+});
+
+/* ============================================
+   QUIZ RENDERING
+   ============================================ */
+function letterFor(i){return String.fromCharCode(65 + i)}
+
+function renderQuiz(){
+  const list = document.getElementById('quiz-list');
+  list.innerHTML = '';
+  const filtered = QUESTIONS.filter(q=>{
+    const tOk = appState.quizFilters.topic === 'all' || q.topic === appState.quizFilters.topic;
+    const typeOk = appState.quizFilters.type === 'all' || q.type === appState.quizFilters.type;
+    return tOk && typeOk;
+  });
+
+  if(filtered.length === 0){
+    list.innerHTML = '<p style="text-align:center;padding:48px;color:var(--ink-mute);font-style:italic">Nenhuma questão com esses filtros.</p>';
+    return;
+  }
+
+  filtered.forEach((q, idx)=>{
+    const ans = appState.quizAnswers[q.id];
+    const card = document.createElement('div');
+    card.className = 'question';
+    if(ans){
+      card.classList.add('answered', ans.correct ? 'correct' : 'wrong');
+    }
+    const typeBadge = q.type === 'mc' ? 'MC' : q.type === 'vf' ? 'V/F' : 'NUM';
+    const typeLabel = q.type === 'mc' ? 'Múltipla Escolha' : q.type === 'vf' ? 'Verdadeiro / Falso' : 'Numérica';
+    card.innerHTML = `
+      <div class="q-meta">
+        <span><span class="q-num">Q${String(idx+1).padStart(2,'0')}</span> · <span class="q-type-badge ${q.type}">${typeBadge}</span> ${typeLabel}</span>
+        <span class="q-tag">${q.tag}</span>
+      </div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="q-body" id="q-body-${q.id}"></div>
+      <div class="q-feedback" id="q-fb-${q.id}"></div>
+    `;
+    list.appendChild(card);
+    renderQuestionBody(q, ans);
+    if(ans) renderFeedback(q, ans);
+  });
+  updateQuizStats();
+}
+
+function renderQuestionBody(q, ans){
+  const body = document.getElementById('q-body-' + q.id);
+  if(!body) return;
+  body.innerHTML = '';
+
+  if(q.type === 'mc' || q.type === 'vf'){
+    const opts = document.createElement('div');
+    opts.className = 'options';
+    q.options.forEach((opt, i)=>{
+      const optEl = document.createElement('div');
+      optEl.className = 'option';
+      if(ans){
+        optEl.classList.add('locked');
+        if(i === q.correct) optEl.classList.add('correct-answer');
+        if(ans.selected === i && i !== q.correct) optEl.classList.add('wrong-answer');
+      }
+      optEl.innerHTML = `<span class="option-letter">${letterFor(i)}</span><span class="option-text">${opt}</span>`;
+      if(!ans){
+        optEl.addEventListener('click', ()=>{
+          recordAnswer(q.id, i, i === q.correct);
+        });
+      }
+      opts.appendChild(optEl);
+    });
+    body.appendChild(opts);
+  } else if(q.type === 'num'){
+    const wrapper = document.createElement('div');
+    const unit = q.unit || '';
+    const hint = q.hint || (q.unit ? `Resposta em ${q.unit}` : 'Resposta numérica');
+    wrapper.innerHTML = `
+      <div class="num-input-row">
+        <input type="text" id="num-input-${q.id}" placeholder="Sua resposta..." ${ans ? 'disabled' : ''} value="${ans ? ans.selected : ''}" />
+        <span class="num-input-hint">${hint}</span>
+        ${!ans ? `<button class="btn" data-q="${q.id}">Verificar</button>` : ''}
+      </div>
+    `;
+    body.appendChild(wrapper);
+    if(!ans){
+      const btn = wrapper.querySelector('button');
+      const inp = wrapper.querySelector('input');
+      const submit = ()=>{
+        const raw = inp.value.replace(',', '.').trim();
+        if(raw === '') return;
+        const val = parseFloat(raw);
+        if(isNaN(val)) return;
+        const correct = Math.abs(val - q.correct) <= q.tolerance;
+        recordAnswer(q.id, val, correct);
+      };
+      btn.addEventListener('click', submit);
+      inp.addEventListener('keydown', e=>{
+        if(e.key === 'Enter') submit();
+      });
+      inp.focus();
+    }
+  }
+}
+
+function recordAnswer(qid, selected, correct){
+  appState.quizAnswers[qid] = {selected, correct, ts: Date.now()};
+  saveState();
+  renderQuiz();
+}
+
+function renderFeedback(q, ans){
+  const fb = document.getElementById('q-fb-' + q.id);
+  if(!fb) return;
+  const div = document.createElement('div');
+  div.className = 'feedback ' + (ans.correct ? 'correct' : 'wrong');
+  let your = '';
+  if(q.type === 'num'){
+    your = `<p><strong>Sua resposta:</strong> ${ans.selected}${q.unit || ''} · <strong>Correta:</strong> ${q.correct}${q.unit || ''}</p>`;
+  } else {
+    your = `<p><strong>Sua resposta:</strong> ${letterFor(ans.selected)}) ${q.options[ans.selected]}</p>`;
+    if(!ans.correct) your += `<p><strong>Resposta correta:</strong> ${letterFor(q.correct)}) ${q.options[q.correct]}</p>`;
+  }
+  div.innerHTML = `
+    <div class="feedback-title">${ans.correct ? '✓ Correto' : '✗ Incorreto · Vamos revisar'}</div>
+    <div class="feedback-body">${your}<div style="margin-top:10px;border-top:1px solid rgba(0,0,0,.08);padding-top:10px">${q.explanation}</div></div>
+  `;
+  fb.innerHTML = '';
+  fb.appendChild(div);
+}
+
+function updateQuizStats(){
+  const total = QUESTIONS.length;
+  const answered = Object.keys(appState.quizAnswers).length;
+  const correct = Object.values(appState.quizAnswers).filter(a=>a.correct).length;
+  const wrong = answered - correct;
+  document.getElementById('qz-answered').textContent = `${answered}/${total}`;
+  document.getElementById('qz-correct').textContent = correct;
+  document.getElementById('qz-wrong').textContent = wrong;
+  document.getElementById('qz-rate').textContent = answered ? Math.round(correct/answered*100) + '%' : '—';
+  document.getElementById('qz-progress').style.width = (answered/total*100) + '%';
+}
+
+// filter chips
+document.querySelectorAll('.chip[data-filter]').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.chip[data-filter]').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    appState.quizFilters.topic = c.dataset.filter;
+    renderQuiz();
+  });
+});
+document.querySelectorAll('.chip[data-type]').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.chip[data-type]').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    appState.quizFilters.type = c.dataset.type;
+    renderQuiz();
+  });
+});
+
+// reset progress
+document.getElementById('qz-reset').addEventListener('click', ()=>{
+  if(confirm('Resetar todas as respostas do quiz? Isso não afeta o simulado.')){
+    appState.quizAnswers = {};
+    saveState();
+    renderQuiz();
+  }
+});
+
+document.getElementById('qz-shuffle').addEventListener('click', ()=>{
+  // shuffle in-place
+  for(let i = QUESTIONS.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [QUESTIONS[i], QUESTIONS[j]] = [QUESTIONS[j], QUESTIONS[i]];
+  }
+  renderQuiz();
+});
+
+/* ============================================
+   EXAM
+   ============================================ */
+let examTimerInterval = null;
+
+document.getElementById('exam-start').addEventListener('click', ()=>{
+  if(appState.examInProgress && appState.examStartTime){
+    if(!confirm('Há um simulado em andamento. Reiniciar?')) return;
+  }
+  appState.examInProgress = true;
+  appState.examAnswers = {};
+  appState.examStartTime = Date.now();
+  saveState();
+  document.getElementById('exam-intro').classList.add('hidden');
+  document.getElementById('exam-results').classList.add('hidden');
+  document.getElementById('exam-running').classList.remove('hidden');
+  renderExam();
+  startExamTimer();
+});
+
+function renderExam(){
+  const list = document.getElementById('exam-list');
+  list.innerHTML = '';
+  EXAM_QUESTIONS.forEach((q, idx)=>{
+    const ans = appState.examAnswers[q.id];
+    const card = document.createElement('div');
+    card.className = 'question';
+    const typeBadge = q.type === 'mc' ? 'MC' : q.type === 'vf' ? 'V/F' : 'NUM';
+    const typeLabel = q.type === 'mc' ? 'Múltipla Escolha' : q.type === 'vf' ? 'Verdadeiro / Falso' : 'Numérica';
+    card.innerHTML = `
+      <div class="q-meta">
+        <span><span class="q-num">Q${String(idx+1).padStart(2,'0')}</span> · <span class="q-type-badge ${q.type}">${typeBadge}</span> ${typeLabel}</span>
+        <span class="q-tag">${q.tag}</span>
+      </div>
+      <div class="q-stem">${q.stem}</div>
+      <div class="q-body" id="ex-body-${q.id}"></div>
+    `;
+    list.appendChild(card);
+
+    const body = card.querySelector(`#ex-body-${q.id}`);
+    if(q.type === 'mc' || q.type === 'vf'){
+      const opts = document.createElement('div');
+      opts.className = 'options';
+      q.options.forEach((opt, i)=>{
+        const optEl = document.createElement('div');
+        optEl.className = 'option' + (ans && ans.selected === i ? ' selected' : '');
+        optEl.innerHTML = `<span class="option-letter">${letterFor(i)}</span><span class="option-text">${opt}</span>`;
+        optEl.addEventListener('click', ()=>{
+          appState.examAnswers[q.id] = {selected: i};
+          saveState();
+          renderExam();
+        });
+        opts.appendChild(optEl);
+      });
+      body.appendChild(opts);
+    } else if(q.type === 'num'){
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = `
+        <div class="num-input-row">
+          <input type="text" id="ex-num-${q.id}" placeholder="Sua resposta..." value="${ans ? ans.selected : ''}" />
+          <span class="num-input-hint">${q.unit ? 'Em ' + q.unit : 'Numérica'}</span>
+        </div>
+      `;
+      body.appendChild(wrapper);
+      const inp = wrapper.querySelector('input');
+      inp.addEventListener('input', ()=>{
+        appState.examAnswers[q.id] = {selected: inp.value};
+        saveState();
+      });
+    }
+  });
+  updateExamProgress();
+}
+
+function updateExamProgress(){
+  const answered = Object.keys(appState.examAnswers).length;
+  document.getElementById('exam-progress-text').textContent = `${answered} de ${EXAM_QUESTIONS.length} respondidas`;
+}
+
+function startExamTimer(){
+  if(examTimerInterval) clearInterval(examTimerInterval);
+  examTimerInterval = setInterval(()=>{
+    const elapsed = Date.now() - appState.examStartTime;
+    const remaining = appState.examDuration - elapsed;
+    if(remaining <= 0){
+      clearInterval(examTimerInterval);
+      submitExam(true);
+      return;
+    }
+    const min = Math.floor(remaining / 60000);
+    const sec = Math.floor((remaining % 60000) / 1000);
+    const display = document.getElementById('exam-timer');
+    display.textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    display.classList.toggle('warn', remaining < 10*60*1000 && remaining >= 5*60*1000);
+    display.classList.toggle('danger', remaining < 5*60*1000);
+  }, 250);
+}
+
+document.getElementById('exam-submit').addEventListener('click', ()=>{
+  const answered = Object.keys(appState.examAnswers).length;
+  const total = EXAM_QUESTIONS.length;
+  if(answered < total){
+    if(!confirm(`Você respondeu ${answered}/${total}. Entregar mesmo assim?`)) return;
+  }
+  submitExam(false);
+});
+
+function submitExam(timeout){
+  if(examTimerInterval) clearInterval(examTimerInterval);
+  const elapsed = Date.now() - appState.examStartTime;
+  const minutes = Math.floor(elapsed/60000);
+  const seconds = Math.floor((elapsed%60000)/1000);
+
+  let correct = 0;
+  const details = EXAM_QUESTIONS.map((q, idx)=>{
+    const ans = appState.examAnswers[q.id];
+    let isCorrect = false;
+    let userAnswerText = '<em>Sem resposta</em>';
+    if(ans){
+      if(q.type === 'mc' || q.type === 'vf'){
+        isCorrect = ans.selected === q.correct;
+        userAnswerText = `${letterFor(ans.selected)}) ${q.options[ans.selected]}`;
+      } else if(q.type === 'num'){
+        const v = parseFloat(String(ans.selected).replace(',','.'));
+        isCorrect = !isNaN(v) && Math.abs(v - q.correct) <= q.tolerance;
+        userAnswerText = isNaN(v) ? '<em>Inválida</em>' : v + (q.unit || '');
+      }
+    }
+    if(isCorrect) correct++;
+    let correctText = '';
+    if(q.type === 'mc' || q.type === 'vf'){
+      correctText = `${letterFor(q.correct)}) ${q.options[q.correct]}`;
+    } else {
+      correctText = q.correct + (q.unit || '');
+    }
+    return {q, ans, isCorrect, idx, userAnswerText, correctText};
+  });
+
+  const score = correct;
+  const total = EXAM_QUESTIONS.length;
+  const pct = Math.round(correct/total*100);
+  let grade, gradeClass, msg;
+  if(pct >= 90){grade='A'; gradeClass='excellent'; msg='Excelente. Domínio sólido do conteúdo.'}
+  else if(pct >= 80){grade='B'; gradeClass='excellent'; msg='Muito bom. Pequenos pontos a refinar.'}
+  else if(pct >= 70){grade='B-'; gradeClass='good'; msg='Bom. Revise os tópicos errados.'}
+  else if(pct >= 60){grade='C'; gradeClass='good'; msg='Aprovado por pouco. Pratique mais.'}
+  else if(pct >= 50){grade='D'; gradeClass='fair'; msg='Reprovado. Revise tudo desde o início.'}
+  else {grade='F'; gradeClass='poor'; msg='Muito longe. Comece pela teoria.'}
+
+  const results = document.getElementById('exam-results');
+  results.classList.remove('hidden');
+  document.getElementById('exam-running').classList.add('hidden');
+  results.innerHTML = `
+    <div class="result-screen">
+      <div style="font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.18em;color:var(--ink-mute)">${timeout ? 'Tempo Esgotado' : 'Prova Entregue'}</div>
+      <div class="result-grade ${gradeClass}">${grade}</div>
+      <div style="font-family:var(--serif);font-size:48px;font-weight:600;color:var(--ink)">${correct}<span style="color:var(--ink-mute);font-size:24px">/${total}</span></div>
+      <div style="font-family:var(--mono);font-size:14px;color:var(--ink-mute);margin-top:4px">${pct}% · ${minutes}m ${seconds}s</div>
+      <div class="result-msg">${msg}</div>
+      <button class="btn ghost" onclick="document.getElementById('exam-intro').classList.remove('hidden');document.getElementById('exam-results').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'})">↻ Tentar Novamente</button>
+    </div>
+    <h2 class="section-title" style="margin-top:48px">Gabarito Comentado</h2>
+    <div id="exam-review"></div>
+  `;
+  const review = document.getElementById('exam-review');
+  details.forEach(d=>{
+    const card = document.createElement('div');
+    card.className = 'question ' + (d.isCorrect ? 'correct' : 'wrong');
+    card.innerHTML = `
+      <div class="q-meta">
+        <span><span class="q-num">Q${String(d.idx+1).padStart(2,'0')}</span> · ${d.q.tag}</span>
+        <span style="color:${d.isCorrect ? 'var(--ok)' : 'var(--accent)'};font-weight:700">${d.isCorrect ? '✓ ACERTOU' : '✗ ERROU'}</span>
+      </div>
+      <div class="q-stem">${d.q.stem}</div>
+      <div class="feedback ${d.isCorrect ? 'correct' : 'wrong'}">
+        <div class="feedback-title">${d.isCorrect ? 'Correto' : 'Revisão'}</div>
+        <div class="feedback-body">
+          <p><strong>Sua resposta:</strong> ${d.userAnswerText}</p>
+          ${!d.isCorrect ? `<p><strong>Resposta correta:</strong> ${d.correctText}</p>` : ''}
+          <div style="margin-top:10px;border-top:1px solid rgba(0,0,0,.08);padding-top:10px">${d.q.explanation}</div>
+        </div>
+      </div>
+    `;
+    review.appendChild(card);
+  });
+
+  appState.examInProgress = false;
+  saveState();
+}
+
+/* ============================================
+   SCROLL TO TOP
+   ============================================ */
+const toTop = document.getElementById('to-top');
+window.addEventListener('scroll', ()=>{
+  toTop.classList.toggle('show', window.scrollY > 800);
+});
+toTop.addEventListener('click', ()=>{
+  window.scrollTo({top: 0, behavior: 'smooth'});
+});
+
+/* ============================================
+   INIT
+   ============================================ */
+loadState();
+renderQuiz();
+
+// resume ongoing exam if any
+if(appState.examInProgress && appState.examStartTime){
+  const elapsed = Date.now() - appState.examStartTime;
+  if(elapsed < appState.examDuration){
+    document.getElementById('exam-intro').classList.add('hidden');
+    document.getElementById('exam-running').classList.remove('hidden');
+    renderExam();
+    startExamTimer();
+  } else {
+    appState.examInProgress = false;
+    saveState();
+  }
+}
+</script>
+
+</body>
+</html>
